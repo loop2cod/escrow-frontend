@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MilestoneBuilder, Milestone } from "@/components/orders/milestone-builder";
+import { AgreementManager, AgreementData } from "@/components/orders/agreement-manager";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,6 +32,11 @@ export default function CreateOrderPage() {
       releaseCondition: "",
     },
   ]);
+
+  const [agreementData, setAgreementData] = useState<AgreementData>({
+    type: "upload",
+    file: null,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +67,7 @@ export default function CreateOrderPage() {
         paymentPercentage: m.percentage,
         releaseCondition: m.releaseCondition,
       })),
+      agreement: agreementData,
     };
 
     console.log("Escrow Agreement:", escrowAgreement);
@@ -171,6 +178,11 @@ export default function CreateOrderPage() {
             </div>
           </CardContent>
         </Card>
+
+        <Separator />
+
+        {/* Agreement */}
+        <AgreementManager onChange={setAgreementData} />
 
         <Separator />
 
