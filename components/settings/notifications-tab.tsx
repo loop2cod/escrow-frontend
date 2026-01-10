@@ -15,7 +15,7 @@ export function NotificationsTab() {
     fetchSettings();
   }, [fetchSettings]);
 
-  const handleToggle = (channel: 'email' | 'sms' | 'push', category: keyof typeof settings.notifications.email, value: boolean) => {
+  const handleToggle = (channel: 'email' | 'sms' | 'push', category: 'transactions' | 'orders' | 'security' | 'marketing', value: boolean) => {
     if (!settings) return;
     updateNotifications({
       [channel]: {

@@ -54,7 +54,7 @@ export interface ApiError {
 
 // Auth store state interface
 export interface AuthState {
-  user: User | null;
+  user: any | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -63,7 +63,7 @@ export interface AuthState {
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
   clearError: () => void;
-  setUser: (user: User | null) => void;
+  setUser: (user: any | null) => void;
 }
 
 // ============================================
