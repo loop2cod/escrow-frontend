@@ -8,6 +8,7 @@ import {
   User,
   LogOut,
   ChevronUp,
+  Wallet,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +38,11 @@ const navItems = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Wallet",
+    href: "/dashboard/wallet",
+    icon: Wallet,
   },
   {
     title: "Orders",
