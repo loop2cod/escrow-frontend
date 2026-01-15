@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import apiClient from '@/lib/api-client';
 import {
   WalletState,
   WalletOverview,
@@ -193,6 +194,7 @@ const DUMMY_TRANSACTIONS: WalletTransaction[] = [
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   walletOverview: DUMMY_WALLET_OVERVIEW,
+  wallets: [],
   transactions: DUMMY_TRANSACTIONS,
   isLoading: false,
   error: null,
@@ -200,10 +202,36 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   fetchWalletOverview: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      set({ walletOverview: DUMMY_WALLET_OVERVIEW, isLoading: false });
+      // Fetch wallets from backend
+      const response = await apiClient.get('/wallets');
+      const wallets = response.data.data.wallets;
+
+      set((state) => {
+        // Find TRON wallet to update the overview
+        // Types from backend: network is "TRON", "ETHEREUM", etc.
+        const tronWalletFromApi = wallets.find((w: any) => w.network === 'TRON');
+
+        const newOverview = { ...state.walletOverview } as any; // Clone existing dummy for now to keep structure
+
+        if (tronWalletFromApi && newOverview && newOverview.tronWallet) {
+          newOverview.tronWallet = {
+            ...newOverview.tronWallet,
+            id: tronWalletFromApi.id,
+            address: tronWalletFromApi.address || 'Pending...',
+            balance: parseFloat(tronWalletFromApi.balance),
+            // trxBalance: 0, // Backend doesn't return native balance yet
+          };
+        }
+
+        return {
+          wallets: wallets,
+          walletOverview: newOverview || DUMMY_WALLET_OVERVIEW, // Fallback if null
+          isLoading: false
+        };
+      });
     } catch (error) {
+      console.error('Fetch wallet overview error:', error);
+      // Fallback to dummy data on error for development resilience
       set({ error: 'Failed to fetch wallet overview', isLoading: false });
     }
   },

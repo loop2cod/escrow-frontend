@@ -1,96 +1,312 @@
 "use client";
 
-import { WalletSummaryCards } from "@/components/wallet/wallet-summary-cards";
-import { RecentActivity } from "@/components/wallet/recent-activity";
+import { useState, useEffect, useMemo } from 'react';
+import apiClient from '@/lib/api-client';
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, QrCode } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import {
+  ArrowUpRight,
+  ArrowDownLeft,
+  RefreshCw,
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  ArrowRightLeft,
+  Plus,
+  History,
+  Wallet,
+  Building2,
+  Landmark
+} from "lucide-react";
 import Link from "next/link";
+import { RecentTransactionsPreview } from "@/components/wallet/recent-transactions-preview";
+
+interface WalletData {
+  id: string;
+  network: 'TRON' | 'ETHEREUM' | 'SOLANA' | 'BITCOIN';
+  address: string;
+  currency: string;
+  balance: string;
+  status: string;
+}
 
 export default function WalletPage() {
+  const [wallets, setWallets] = useState<WalletData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showBalance, setShowBalance] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchWallets();
+  }, []);
+
+  const fetchWallets = async (showLoading = true) => {
+    try {
+      if (showLoading) setIsLoading(true);
+      else setIsRefreshing(true);
+
+      const response = await apiClient.get('/wallets');
+      setWallets(response.data.data.wallets);
+    } catch (err: any) {
+      console.error('Failed to fetch wallets', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
+
+  const netAssetValue = useMemo(() => {
+    if (!wallets) return 0;
+    return wallets.reduce((acc, wallet) => acc + (parseFloat(wallet.balance) || 0), 0);
+  }, [wallets]);
+
+  const walletNetworkHelper = (network: string) => {
+    switch (network) {
+      case 'TRON': return {
+        icon: <img src="/coin-icons/tron-trx-logo.png" alt="TRX" className="h-8 w-8" />,
+        symbol: 'TRX'
+      };
+      case 'ETHEREUM': return {
+        icon: <img src="/coin-icons/ethereum-eth-logo.png" alt="ETH" className="h-8 w-8" />,
+        symbol: 'ETH'
+      };
+      case 'SOLANA': return {
+        icon: <img src="/coin-icons/solana-sol-logo.png" alt="SOL" className="h-8 w-8" />,
+        symbol: 'SOL'
+      };
+      case 'BITCOIN': return {
+        icon: <img src="/coin-icons/bitcoin-btc-logo.png" alt="BTC" className="h-8 w-8" />,
+        symbol: 'BTC'
+      };
+      default: return {
+        icon: <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center"><Wallet className="h-4 w-4 text-muted-foreground" /></div>,
+        symbol: network
+      };
+    }
+  };
+
+  if (isLoading) return <div className="flex h-[50vh] items-center justify-center text-sm text-muted-foreground animate-pulse">Loading assets...</div>;
+
   return (
     <div className="flex-1 space-y-6">
-      <div className="flex items-center justify-between">
+
+      {/* Header aligned with Dashboard */}
+      <div className="flex items-center justify-between space-y-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Wallet</h1>
-          <p className="text-muted-foreground">
-            Manage your USD account and USDT wallet
+          <p className="text-muted-foreground text-sm">
+            Manage your crypto and fiat assets
           </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchWallets(false)}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
       </div>
 
-      {/* Wallet Balances */}
-      <WalletSummaryCards />
+      {/* Main Tabs Container */}
+      <Tabs defaultValue="crypto" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="crypto">Crypto Assets</TabsTrigger>
+          <TabsTrigger value="fiat">Fiat Accounts</TabsTrigger>
+        </TabsList>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/dashboard/wallet/usd-account?action=deposit">
-              <Button variant="outline" className="w-full h-24 flex flex-col gap-2">
-                <ArrowDownCircle className="h-6 w-6 text-green-600" />
-                <span>Deposit USD</span>
-              </Button>
-            </Link>
+        {/* ================= CRYPTO TAB ================= */}
+        <TabsContent value="crypto" className="space-y-4 focus-visible:outline-none">
 
-            <Link href="/dashboard/wallet/usd-account?action=withdraw">
-              <Button variant="outline" className="w-full h-24 flex flex-col gap-2">
-                <ArrowUpCircle className="h-6 w-6 text-blue-600" />
-                <span>Withdraw USD</span>
-              </Button>
-            </Link>
+          {/* 1. Crypto Balance & Quick Actions Card */}
+          <Card className="p-6">
+            <div className="flex flex-col md:flex-row justify-between gap-6 md:items-center">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-sm font-medium">Total Balance</span>
+                  <button onClick={() => setShowBalance(!showBalance)} className="hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted">
+                    {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-bold tracking-tight">
+                    {showBalance ? `$${netAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '******'}
+                  </span>
+                  <Badge variant="secondary" className="text-xs font-normal">
+                    USDT Est.
+                  </Badge>
+                </div>
+              </div>
 
-            <Link href="/dashboard/wallet/usdt-wallet?action=send">
-              <Button variant="outline" className="w-full h-24 flex flex-col gap-2">
-                <ArrowUpCircle className="h-6 w-6 text-purple-600" />
-                <span>Send USDT</span>
-              </Button>
-            </Link>
+              {/* Quick Actions */}
+              <div className="flex gap-3 w-full md:w-auto">
+                <Link href="/dashboard/wallet/receive" className="flex-1 md:flex-none">
+                  <Button className="w-full md:w-32 gap-2 cursor-pointer" variant="secondary">
+                    <ArrowDownLeft className="h-4 w-4" /> Receive
+                  </Button>
+                </Link>
+                <Link href="/dashboard/wallet/send" className="flex-1 md:flex-none">
+                  <Button className="w-full md:w-32 gap-2 cursor-pointer" variant="secondary">
+                    <ArrowUpRight className="h-4 w-4" /> Send
+                  </Button>
+                </Link>
+                <Button disabled className="flex-1 md:flex-none w-full md:w-32 gap-2 border-dashed opacity-50 cursor-not-allowed" variant="outline">
+                  <ArrowRightLeft className="h-4 w-4" /> Swap
+                </Button>
+              </div>
+            </div>
+          </Card>
 
-            <Link href="/dashboard/wallet/usdt-wallet?action=receive">
-              <Button variant="outline" className="w-full h-24 flex flex-col gap-2">
-                <QrCode className="h-6 w-6 text-orange-600" />
-                <span>Receive USDT</span>
-              </Button>
-            </Link>
+          {/* 2. Crypto Assets List */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold tracking-tight">My Assets</h2>
+            <div className="grid gap-3">
+              {wallets.length > 0 ? (
+                wallets.map((wallet) => {
+                  const { icon } = walletNetworkHelper(wallet.network);
+                  const isCopied = copiedId === wallet.id;
+
+                  return (
+                    <div key={wallet.id} className="group flex items-center justify-between p-3 border bg-card hover:border-primary/50 hover:shadow-sm transition-all">
+                      {/* Left: Icon & Name */}
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          {icon}
+                          <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-background flex items-center justify-center border shadow-sm">
+                            <span className="text-[8px] font-bold text-muted-foreground leading-none">{wallet.network[0]}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-base">{wallet.currency}</span>
+                            <Badge variant="secondary" className="text-[10px] h-4 px-1 font-normal text-muted-foreground bg-muted/50">{wallet.network}</Badge>
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-xs text-muted-foreground font-mono truncate max-w-[120px] sm:max-w-[200px] select-all">
+                              {wallet.address}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyToClipboard(wallet.address, wallet.id);
+                              }}
+                              className="text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Balance */}
+                      <div className="text-right">
+                        <div className="font-bold text-lg">
+                          {showBalance ? parseFloat(wallet.balance).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '******'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {showBalance ? `$${parseFloat(wallet.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '******'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-12 text-muted-foreground border rounded-xl border-dashed">
+                  <Wallet className="h-8 w-8 mx-auto mb-3 opacity-20" />
+                  <p className="text-sm">No crypto assets found</p>
+                </div>
+              )}
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Account Links */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Link href="/dashboard/wallet/usd-account">
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader>
-              <CardTitle className="text-lg">USD Account</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Manage your USD account, view details, deposit, and withdraw funds
-              </p>
-            </CardContent>
+          {/* 3. Crypto Transaction History Preview */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold tracking-tight">History</h2>
+              <Link href="/dashboard/wallet/transactions" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+                View All <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+
+            <Card className="shadow-none border py-0">
+              <div className="p-0">
+                <RecentTransactionsPreview />
+              </div>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ================= FIAT TAB ================= */}
+        <TabsContent value="fiat" className="space-y-4 focus-visible:outline-none">
+
+          {/* 1. Fiat Balance (Placeholder) */}
+          <Card className="p-6">
+            <div className="flex flex-col md:flex-row justify-between gap-6 md:items-center">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-sm font-medium">Cash Balance</span>
+                  <button onClick={() => setShowBalance(!showBalance)} className="hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted">
+                    {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-bold tracking-tight">
+                    {showBalance ? '$0.00' : '******'}
+                  </span>
+                  <Badge variant="secondary" className="text-xs font-normal">USD</Badge>
+                </div>
+              </div>
+
+              <div className="flex gap-3 w-full md:w-auto">
+                <Button disabled className="flex-1 md:flex-none w-full md:w-32 gap-2 opacity-50 cursor-not-allowed" variant="default">
+                  <Plus className="h-4 w-4" /> Deposit
+                </Button>
+                <Button disabled className="flex-1 md:flex-none w-full md:w-32 gap-2 opacity-50 cursor-not-allowed" variant="outline">
+                  <Landmark className="h-4 w-4" /> Withdraw
+                </Button>
+              </div>
+            </div>
           </Card>
-        </Link>
 
-        <Link href="/dashboard/wallet/usdt-wallet">
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader>
-              <CardTitle className="text-lg">USDT Wallet (TRON)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Manage your TRON-based USDT wallet, send and receive cryptocurrency
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
+          {/* 2. Fiat Accounts List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold tracking-tight">Bank Accounts</h2>
+              <Button variant="ghost" size="sm" disabled className="text-muted-foreground opacity-50">Manage Accounts</Button>
+            </div>
 
-      {/* Recent Activity */}
-      <RecentActivity />
+            <Card className="border-dashed bg-muted/5 shadow-none">
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Building2 className="h-10 w-10 mb-3 opacity-20" />
+                <h3 className="text-sm font-medium text-foreground">No accounts linked</h3>
+                <p className="text-xs mt-1">Bank integration is coming soon.</p>
+                <Button variant="outline" size="sm" className="mt-4" disabled>
+                  Link Account
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

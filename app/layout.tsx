@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 
-const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
+const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -10,6 +10,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  userReferenceId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,7 +86,21 @@ export interface BridgeUSDAccount {
   updatedAt: string;
 }
 
-// TRON USDT Wallet
+// Wallet from Backend
+export interface Wallet {
+  id: string;
+  userId: string;
+  network: 'TRON' | 'ETHEREUM' | 'SOLANA';
+  address: string;
+  dfnsWalletId?: string;
+  currency: 'USDT' | 'DPRS';
+  balance: number;
+  status: 'ACTIVE' | 'FROZEN';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// TRON USDT Wallet (Legacy/Specific type for UI)
 export interface TronUSDTWallet {
   id: string;
   userId: string;
@@ -172,6 +187,7 @@ export interface TransactionFilters {
 // Wallet Store State
 export interface WalletState {
   walletOverview: WalletOverview | null;
+  wallets: Wallet[]; // List of all backend wallets
   transactions: WalletTransaction[];
   isLoading: boolean;
   error: string | null;

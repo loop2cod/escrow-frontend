@@ -91,7 +91,7 @@ export function RecentActivity() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+        <CardTitle className="text-lg font-semibold">History</CardTitle>
         <Link
           href="/dashboard/wallet/transactions"
           className="text-sm text-primary hover:underline"
