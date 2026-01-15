@@ -78,25 +78,35 @@ export default function WalletPage() {
   const walletNetworkHelper = (network: string) => {
     switch (network) {
       case 'TRON': return {
-        icon: <img src="/coin-icons/tron-trx-logo.png" alt="TRX" className="h-8 w-8" />,
+        icon: <img src="/coin-icons/tether-usdt-logo.png" alt="TRX" className='h-8 w-8' />,
         symbol: 'TRX'
       };
       case 'ETHEREUM': return {
-        icon: <img src="/coin-icons/ethereum-eth-logo.png" alt="ETH" className="h-8 w-8" />,
+        icon: <img src="/coin-icons/tether-usdt-logo.png" alt="ETH" className='h-8 w-8' />,
         symbol: 'ETH'
       };
       case 'SOLANA': return {
-        icon: <img src="/coin-icons/solana-sol-logo.png" alt="SOL" className="h-8 w-8" />,
+        icon: <img src="/coin-icons/tether-usdt-logo.png" alt="SOL" className='h-8 w-8' />,
         symbol: 'SOL'
       };
       case 'BITCOIN': return {
-        icon: <img src="/coin-icons/bitcoin-btc-logo.png" alt="BTC" className="h-8 w-8" />,
+        icon: <img src="/coin-icons/tether-usdt-logo.png" alt="BTC" className='h-8 w-8' />,
         symbol: 'BTC'
       };
       default: return {
         icon: <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center"><Wallet className="h-4 w-4 text-muted-foreground" /></div>,
         symbol: network
       };
+    }
+  };
+
+  const getNetworkIconPath = (network: string) => {
+    switch (network) {
+      case 'TRON': return '/coin-icons/tron-trx-logo.png';
+      case 'ETHEREUM': return '/coin-icons/ethereum-eth-logo.png';
+      case 'SOLANA': return '/coin-icons/solana-sol-logo.png';
+      case 'BITCOIN': return '/coin-icons/bitcoin-btc-logo.png';
+      default: return null;
     }
   };
 
@@ -190,8 +200,16 @@ export default function WalletPage() {
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           {icon}
-                          <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-background flex items-center justify-center border shadow-sm">
-                            <span className="text-[8px] font-bold text-muted-foreground leading-none">{wallet.network[0]}</span>
+                          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-background flex items-center justify-center border shadow-sm overflow-hidden p-[1px]">
+                            {getNetworkIconPath(wallet.network) ? (
+                              <img
+                                src={getNetworkIconPath(wallet.network)!}
+                                alt={wallet.network}
+                                className="h-full w-full object-contain rounded-full"
+                              />
+                            ) : (
+                              <span className="text-[8px] font-bold text-muted-foreground leading-none">{wallet.network[0]}</span>
+                            )}
                           </div>
                         </div>
                         <div>

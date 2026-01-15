@@ -1,212 +1,297 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import apiClient from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { MilestoneBuilder, Milestone } from "@/components/orders/milestone-builder";
-import { AgreementManager, AgreementData } from "@/components/orders/agreement-manager";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Step1Details from "./steps/Step1Details";
+import Step2Agreement from "./steps/Step2Agreement";
+import Step3Milestones from "./steps/Step3Milestones";
+import Step4Review from "./steps/Step4Review";
 
-export default function CreateOrderPage() {
+interface Milestone {
+  title: string;
+  description: string;
+  amount: string;
+}
+
+export default function CreateContractPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const draftIdParam = searchParams.get('draftId');
+
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sellerValidation, setSellerValidation] = useState<{ valid: boolean; name?: string } | null>(null);
+  const [isValidatingSeller, setIsValidatingSeller] = useState(false);
+
+  // Form Data
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    totalAmount: "",
-    buyerEmail: "",
-    currency: "USD",
+    sellerEmail: "", // Invite Seller
+    currency: "USDT",
+    terms: "",
+    milestones: [{ title: "", description: "", amount: "" }] as Milestone[],
   });
 
-  const [milestones, setMilestones] = useState<Milestone[]>([
-    {
-      id: `milestone-${Date.now()}`,
-      title: "",
-      description: "",
-      percentage: 100,
-      releaseCondition: "",
-    },
-  ]);
+  // Draft State
+  const [draftId, setDraftId] = useState<string | null>(null);
 
-  const [agreementData, setAgreementData] = useState<AgreementData>({
-    type: "upload",
-    file: null,
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const totalPercentage = milestones.reduce(
-      (sum, m) => sum + (Number(m.percentage) || 0),
-      0
-    );
-
-    if (totalPercentage !== 100) {
-      alert("Payment percentages must total exactly 100%");
-      return;
+  useEffect(() => {
+    if (draftIdParam) {
+      setDraftId(draftIdParam);
+      fetchDraft(draftIdParam);
     }
+  }, [draftIdParam]);
 
-    // Validate all fields
-    if (!formData.title || !formData.description || !formData.totalAmount || !formData.buyerEmail) {
-      alert("Please fill in all required fields");
-      return;
+  const fetchDraft = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const res = await apiClient.get(`/contracts/${id}`);
+      const contract = res.data.data.contract;
+
+      setFormData({
+        title: contract.title || "",
+        description: contract.description || "",
+        sellerEmail: contract.seller?.email || "",
+        currency: contract.currency || "USDT",
+        terms: contract.terms || "",
+        milestones: contract.milestones.length > 0 ? contract.milestones.map((m: any) => ({
+          title: m.title,
+          description: m.description,
+          amount: m.amount.toString()
+        })) : [{ title: "", description: "", amount: "" }]
+      });
+
+      // Determine Resume Step
+      if (contract.currentStep) {
+        setStep(contract.currentStep);
+      } else {
+        // Fallback logic
+        if (!contract.terms) {
+          setStep(2);
+        } else if (!contract.milestones || contract.milestones.length === 0) {
+          setStep(3);
+        } else {
+          setStep(4);
+        }
+      }
+
+      // Pre-validate seller logic if exists
+      if (contract.seller) {
+        setSellerValidation({ valid: true, name: contract.seller.name });
+      }
+
+    } catch (err) {
+      console.error("Failed to load draft", err);
+      setError("Failed to load draft");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    const escrowAgreement = {
-      ...formData,
-      totalAmount: Number(formData.totalAmount),
-      milestones: milestones.map((m, index) => ({
-        order: index + 1,
-        title: m.title,
-        description: m.description,
-        paymentPercentage: m.percentage,
-        releaseCondition: m.releaseCondition,
-      })),
-      agreement: agreementData,
-    };
+  const validateSeller = async (identifier: string) => {
+    try {
+      setIsValidatingSeller(true);
+      const res = await apiClient.post('/contracts/validate-user', { identifier });
+      if (res.data.status) {
+        setSellerValidation({ valid: true, name: res.data.data.user.name });
+      } else {
+        setSellerValidation({ valid: false });
+      }
+    } catch (err) {
+      setSellerValidation({ valid: false });
+    } finally {
+      setIsValidatingSeller(false);
+    }
+  };
 
-    console.log("Escrow Agreement:", escrowAgreement);
+  const updateFormData = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-    // TODO: Submit to API
-    // For now, just redirect back
-    router.push("/dashboard/orders");
+  const updateMilestone = (index: number, field: string, value: string) => {
+    const newMilestones = [...formData.milestones];
+    (newMilestones[index] as any)[field] = value;
+    setFormData(prev => ({ ...prev, milestones: newMilestones }));
+  };
+
+  const addMilestone = () => {
+    setFormData(prev => ({
+      ...prev,
+      milestones: [...prev.milestones, { title: "", description: "", amount: "" }]
+    }));
+  };
+
+  const removeMilestone = (index: number) => {
+    if (formData.milestones.length === 1) return;
+    const newMilestones = [...formData.milestones];
+    newMilestones.splice(index, 1);
+    setFormData(prev => ({ ...prev, milestones: newMilestones }));
+  };
+
+  // Calculate total amount
+  const totalAmount = formData.milestones.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
+
+  const saveDraft = async (targetStep?: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Payload with current state
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        terms: formData.terms,
+        totalAmount: totalAmount,
+        currency: formData.currency,
+        sellerEmail: formData.sellerEmail || null,
+        milestones: formData.milestones.map(m => ({
+          title: m.title,
+          description: m.description,
+          amount: parseFloat(m.amount) || 0
+        })),
+        status: 'DRAFT',
+        currentStep: targetStep || step
+      };
+
+      let res;
+      if (draftId) {
+        // Update existing draft
+        res = await apiClient.put(`/contracts/${draftId}`, payload);
+      } else {
+        // Create new draft
+        res = await apiClient.post('/contracts', payload);
+        setDraftId(res.data.data.contract.id);
+      }
+
+      // If explicitly saving (no target step), maybe show toast? For now just proceed.
+      if (targetStep) {
+        setStep(targetStep);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to save draft");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNextStep = (nextStep: number) => {
+    // Auto-save draft on step transition
+    saveDraft(nextStep);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Validate
+      if (!formData.title || !formData.description) throw new Error("Please fill in basic details");
+      if (totalAmount <= 0) throw new Error("Total contract value must be greater than 0");
+
+      if (!draftId) {
+        // Should have draftId by step 4 if we auto-saved, but handling edge case
+        await saveDraft();
+      }
+
+      // Finalize Status
+      if (draftId) {
+        await apiClient.put(`/contracts/${draftId}`, { status: 'PENDING_ACCEPTANCE' }); // Or whatever the active status is
+      } else {
+        // Fallback if saveDraft failed to set ID? (Unlikely)
+        throw new Error("Draft ID missing");
+      }
+
+      router.push('/dashboard/orders');
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to create contract");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex-1 space-y-6">
+    <div className="w-full space-y-6 pt-6 animate-in fade-in">
+      {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/orders">
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
+        <Link href="/dashboard/orders">
+          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
         <div>
-          <h1 className="text-base font-bold tracking-tight">Create Escrow Agreement</h1>
-          <p className="text-xs text-muted-foreground">
-            Define the terms and conditions for your escrow order
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">New Contract</h1>
+          <p className="text-sm text-muted-foreground">Create a new milestone-based escrow contract.</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
-              Provide the essential details about this escrow agreement
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Agreement Title *</Label>
-              <Input
-                id="title"
-                placeholder="e.g., Website Development Project"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                required
-              />
-            </div>
+      {/* Stepper */}
+      <div className="flex items-center gap-2 mb-8">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className={`h-2 flex-1 rounded-full ${step >= i ? 'bg-primary' : 'bg-muted'}`} />
+        ))}
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe the work or product being exchanged"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="totalAmount">Total Amount *</Label>
-                <Input
-                  id="totalAmount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.totalAmount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, totalAmount: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <Input
-                  id="currency"
-                  value={formData.currency}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currency: e.target.value })
-                  }
-                  disabled
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="buyerEmail">Buyer Email *</Label>
-              <Input
-                id="buyerEmail"
-                type="email"
-                placeholder="buyer@example.com"
-                value={formData.buyerEmail}
-                onChange={(e) =>
-                  setFormData({ ...formData, buyerEmail: e.target.value })
-                }
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                The buyer will receive an invitation to participate in this escrow
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Separator />
-
-        {/* Agreement */}
-        <AgreementManager onChange={setAgreementData} />
-
-        <Separator />
-
-        {/* Milestones */}
-        <Card>
-          <CardContent>
-            <MilestoneBuilder
-              milestones={milestones}
-              onChange={setMilestones}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-4">
-          <Button variant="outline" type="button" asChild>
-            <Link href="/dashboard/orders">Cancel</Link>
-          </Button>
-          <Button type="submit">
-            <Save className="mr-2 size-4" />
-            Create Agreement
-          </Button>
+      {/* ERROR ALERT */}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md border border-destructive/20">
+          {error}
         </div>
-      </form>
+      )}
+
+      {/* STEP 1: Basic Details */}
+      {step === 1 && (
+        <Step1Details
+          formData={formData}
+          updateFormData={updateFormData}
+          setStep={handleNextStep}
+          sellerValidation={sellerValidation}
+          validateSeller={validateSeller}
+          setSellerValidation={setSellerValidation}
+          isValidatingSeller={isValidatingSeller}
+        />
+      )}
+
+      {/* STEP 2: Agreement Manager */}
+      {step === 2 && (
+        <Step2Agreement
+          formData={formData}
+          updateFormData={updateFormData}
+          setStep={handleNextStep}
+          onSaveDraft={() => saveDraft()}
+          isLoading={isLoading}
+        />
+      )}
+
+      {/* STEP 3: Milestones */}
+      {step === 3 && (
+        <Step3Milestones
+          formData={formData}
+          updateMilestone={updateMilestone}
+          addMilestone={addMilestone}
+          removeMilestone={removeMilestone}
+          totalAmount={totalAmount}
+          setStep={handleNextStep}
+        />
+      )}
+
+      {/* STEP 4: Review */}
+      {step === 4 && (
+        <Step4Review
+          formData={formData}
+          totalAmount={totalAmount}
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+          setStep={setStep}
+        />
+      )}
     </div>
   );
 }

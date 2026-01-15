@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import apiClient from "@/lib/api-client";
-import { ArrowUpRight, ArrowDownLeft, Clock, ExternalLink } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Transaction {
@@ -49,7 +49,9 @@ export function RecentTransactionsPreview() {
         fetchRecent();
     }, []);
 
-    if (isLoading) return <div className="p-6 text-sm text-muted-foreground">Loading history...</div>;
+    if (isLoading) return <div className="flex flex-col items-center justify-center py-12 text-secondary-foreground text-sm">
+        <Loader2 className="h-9 w-9 animate-spin" />
+    </div>;
 
     if (transactions.length === 0) {
         return (
