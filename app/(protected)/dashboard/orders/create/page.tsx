@@ -218,7 +218,7 @@ export default function CreateContractPage() {
   };
 
   return (
-    <div className="w-full space-y-6 pt-6 animate-in fade-in">
+    <div className="w-full space-y-4 animate-in fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/orders">

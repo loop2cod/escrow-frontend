@@ -102,7 +102,7 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-6 pt-6 animate-in fade-in">
+    <div className="flex-1 space-y-4 animate-in fade-in">
       <div className="flex items-center gap-4">
         <Link href="/dashboard/wallet">
           <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">

@@ -41,6 +41,8 @@ export default function WalletPage() {
   const [showBalance, setShowBalance] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const [refreshKey, setRefreshKey] = useState(0);
+
   useEffect(() => {
     fetchWallets();
   }, []);
@@ -52,6 +54,8 @@ export default function WalletPage() {
 
       const response = await apiClient.get('/wallets');
       setWallets(response.data.data.wallets);
+      // Increment refresh key to reload transactions
+      setRefreshKey(prev => prev + 1);
     } catch (err: any) {
       console.error('Failed to fetch wallets', err);
     } finally {
@@ -85,10 +89,6 @@ export default function WalletPage() {
         icon: <img src="/coin-icons/tether-usdt-logo.png" alt="ETH" className='h-8 w-8' />,
         symbol: 'ETH'
       };
-      case 'SOLANA': return {
-        icon: <img src="/coin-icons/tether-usdt-logo.png" alt="SOL" className='h-8 w-8' />,
-        symbol: 'SOL'
-      };
       case 'BITCOIN': return {
         icon: <img src="/coin-icons/tether-usdt-logo.png" alt="BTC" className='h-8 w-8' />,
         symbol: 'BTC'
@@ -104,7 +104,6 @@ export default function WalletPage() {
     switch (network) {
       case 'TRON': return '/coin-icons/tron-trx-logo.png';
       case 'ETHEREUM': return '/coin-icons/ethereum-eth-logo.png';
-      case 'SOLANA': return '/coin-icons/solana-sol-logo.png';
       case 'BITCOIN': return '/coin-icons/bitcoin-btc-logo.png';
       default: return null;
     }
@@ -266,7 +265,7 @@ export default function WalletPage() {
 
             <Card className="shadow-none border py-0">
               <div className="p-0">
-                <RecentTransactionsPreview />
+                <RecentTransactionsPreview key={refreshKey} />
               </div>
             </Card>
           </div>
