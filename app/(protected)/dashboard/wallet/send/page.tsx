@@ -80,7 +80,7 @@ export default function SendPage() {
         try {
             const res = await apiClient.post('/wallets/transfer', {
                 walletId: selectedWallet.id,
-                to: recipient,
+                toAddress: recipient,
                 amount: amount
             });
             setSuccessData(res.data.data.transfer);
@@ -102,8 +102,8 @@ export default function SendPage() {
 
     if (successData) {
         return (
-            <div className="container max-w-md py-10 animate-in fade-in zoom-in duration-300">
-                <Card className="border-green-100 dark:border-green-900 shadow-lg">
+            <div className="container flex items-center justify-center h-[calc(100vh-20rem)]">
+                <Card className="border-green-100 dark:border-green-900 shadow-lg max-w-3xl mx-auto">
                     <CardHeader className="text-center pb-2">
                         <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <CheckCircle2 className="h-8 w-8" />
@@ -124,7 +124,7 @@ export default function SendPage() {
                             </div>
                             <div className="flex justify-between items-start text-sm">
                                 <span className="text-muted-foreground">To</span>
-                                <span className="font-mono text-xs max-w-[150px] break-all text-right">{recipient}</span>
+                                <span className="font-mono text-xs max-w-[300px] break-all text-right">{recipient}</span>
                             </div>
                         </div>
 
@@ -133,7 +133,7 @@ export default function SendPage() {
                             <p>It may take a few minutes for the transaction to be confirmed on the blockchain.</p>
                         </div>
                     </CardContent>
-                    <CardFooter className="flex gap-2 flex-col sm:flex-row">
+                    <CardFooter className="grid grid-cols-2 gap-2">
                         <Button className="w-full" variant="outline" onClick={() => {
                             setSuccessData(null);
                             setAmount("");

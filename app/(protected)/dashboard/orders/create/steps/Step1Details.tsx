@@ -11,20 +11,20 @@ interface Step1Props {
     formData: any;
     updateFormData: (field: string, value: any) => void;
     setStep: (step: number) => void;
-    sellerValidation: { valid: boolean; name?: string } | null;
-    validateSeller: (identifier: string) => void;
-    setSellerValidation: (val: any) => void;
-    isValidatingSeller: boolean;
+    buyerValidation: { valid: boolean; name?: string } | null;
+    validateBuyer: (identifier: string) => void;
+    setBuyerValidation: (val: any) => void;
+    isValidatingBuyer: boolean;
 }
 
 export default function Step1Details({
     formData,
     updateFormData,
     setStep,
-    sellerValidation,
-    validateSeller,
-    setSellerValidation,
-    isValidatingSeller
+    buyerValidation,
+    validateBuyer,
+    setBuyerValidation,
+    isValidatingBuyer
 }: Step1Props) {
     return (
         <Card>
@@ -54,35 +54,35 @@ export default function Step1Details({
                 </div>
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="seller">Seller Email or User ID (Required)</Label>
+                        <Label htmlFor="buyer">Buyer Email or User ID (Required)</Label>
                         <div className="relative">
                             <Input
-                                id="seller"
+                                id="buyer"
                                 placeholder="Enter email or User ID..."
-                                value={formData.sellerEmail}
+                                value={formData.buyerEmail}
                                 onChange={(e) => {
-                                    updateFormData('sellerEmail', e.target.value);
-                                    setSellerValidation(null);
+                                    updateFormData('buyerEmail', e.target.value);
+                                    setBuyerValidation(null);
                                 }}
                                 onBlur={() => {
-                                    if (formData.sellerEmail) validateSeller(formData.sellerEmail);
+                                    if (formData.buyerEmail) validateBuyer(formData.buyerEmail);
                                 }}
-                                className={sellerValidation?.valid ? "border-green-500 pr-10" : sellerValidation?.valid === false ? "border-destructive pr-10" : ""}
+                                className={buyerValidation?.valid ? "border-green-500 pr-10" : buyerValidation?.valid === false ? "border-destructive pr-10" : ""}
                             />
-                            {isValidatingSeller && (
+                            {isValidatingBuyer && (
                                 <div className="absolute right-3 top-2.5">
                                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                                 </div>
                             )}
-                            {!isValidatingSeller && sellerValidation?.valid && (
+                            {!isValidatingBuyer && buyerValidation?.valid && (
                                 <div className="absolute right-3 top-2.5 text-green-500">
                                     <CheckCircle2 className="h-4 w-4" />
                                 </div>
                             )}
                         </div>
-                        {sellerValidation?.valid ? (
-                            <p className="text-[10px] text-green-600">User found: {sellerValidation.name}</p>
-                        ) : sellerValidation?.valid === false ? (
+                        {buyerValidation?.valid ? (
+                            <p className="text-[10px] text-green-600">User found: {buyerValidation.name}</p>
+                        ) : buyerValidation?.valid === false ? (
                             <p className="text-[10px] text-destructive">User not found. Please check the email or ID.</p>
                         ) : (
                             <p className="text-[10px] text-muted-foreground">We'll verify this user exists.</p>
@@ -93,7 +93,7 @@ export default function Step1Details({
             <CardFooter className="flex justify-end">
                 <Button
                     onClick={() => setStep(2)}
-                    disabled={!formData.title || !formData.description || !formData.sellerEmail || sellerValidation?.valid === false || isValidatingSeller}
+                    disabled={!formData.title || !formData.description || !formData.buyerEmail || buyerValidation?.valid === false || isValidatingBuyer}
                 >
                     Next: Agreement <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
