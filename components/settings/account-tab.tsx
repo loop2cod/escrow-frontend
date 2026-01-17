@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, User, Calendar } from "lucide-react";
+import { CheckCircle2, XCircle, Calendar } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function AccountTab() {
@@ -165,7 +165,7 @@ export function AccountTab() {
               <Label className="text-muted-foreground">Account ID</Label>
               <div className="flex items-center gap-2">
                 <code className="text-sm bg-muted px-2 py-1 rounded">
-                  {settings.profile.accountId}
+                  {settings.profile.userReferenceId}
                 </code>
               </div>
             </div>
@@ -196,31 +196,8 @@ export function AccountTab() {
         </CardContent>
       </Card>
 
-      {/* Account Type Upgrade */}
-      {settings.profile.accountType === "individual" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Upgrade to Business Account</CardTitle>
-            <CardDescription>
-              Get access to business features and higher limits
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <ul className="text-sm space-y-2 text-muted-foreground">
-                <li>• Higher transaction limits</li>
-                <li>• Team member management</li>
-                <li>• Advanced reporting</li>
-                <li>• Priority support</li>
-              </ul>
-              <Button variant="outline">Upgrade Account</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Danger Zone */}
-      <Card className="border-destructive">
+      {/* <Card className="border-destructive">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Irreversible and destructive actions</CardDescription>
@@ -236,7 +213,7 @@ export function AccountTab() {
             <Button variant="destructive">Delete Account</Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

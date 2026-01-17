@@ -1,26 +1,29 @@
 import { create } from 'zustand';
 import { SettingsState, UserSettings, BankAccount, SavedAddress } from '@/lib/types';
+import apiClient from '@/lib/api-client';
+import Cookies from 'js-cookie';
 
-// Dummy settings data
+// Dummy settings data for sections not yet implemented in backend
 const DUMMY_SETTINGS: UserSettings = {
   profile: {
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
+    fullName: '',
+    email: '',
     emailVerified: true,
-    phone: '+1 (555) 123-4567',
+    phone: '',
     phoneVerified: true,
     avatar: undefined,
-    username: 'johndoe',
+    username: '',
     accountType: 'individual',
-    accountId: 'usr_1234567890',
-    createdAt: new Date('2024-01-15').toISOString(),
+    accountId: '',
+    userReferenceId: '',
+    createdAt: new Date().toISOString(),
   },
 
   security: {
     twoFactorEnabled: false,
     twoFactorMethod: 'authenticator',
     backupCodesGenerated: false,
-    lastPasswordChange: new Date('2024-12-01').toISOString(),
+    lastPasswordChange: null as any, // Will be ignored/handled by UI check
     activeSessions: [
       {
         id: 'sess_001',
@@ -32,67 +35,12 @@ const DUMMY_SETTINGS: UserSettings = {
         lastActive: new Date().toISOString(),
         isCurrent: true,
       },
-      {
-        id: 'sess_002',
-        device: 'iPhone 15 Pro',
-        browser: 'Safari 17',
-        os: 'iOS 17.2',
-        ipAddress: '192.168.1.101',
-        location: 'San Francisco, CA, USA',
-        lastActive: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        isCurrent: false,
-      },
-      {
-        id: 'sess_003',
-        device: 'Windows PC',
-        browser: 'Edge 120',
-        os: 'Windows 11',
-        ipAddress: '203.0.113.45',
-        location: 'New York, NY, USA',
-        lastActive: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-        isCurrent: false,
-      },
     ],
   },
 
   walletSettings: {
-    linkedBankAccounts: [
-      {
-        id: 'bank_001',
-        bankName: 'Chase Bank',
-        accountType: 'checking',
-        last4: '1234',
-        isDefault: true,
-        verified: true,
-        addedAt: new Date('2024-01-20').toISOString(),
-      },
-      {
-        id: 'bank_002',
-        bankName: 'Bank of America',
-        accountType: 'savings',
-        last4: '5678',
-        isDefault: false,
-        verified: true,
-        addedAt: new Date('2024-02-15').toISOString(),
-      },
-    ],
-    savedAddresses: [
-      {
-        id: 'addr_001',
-        label: 'Personal Wallet',
-        address: 'TJRabPrwbZy45sbavfcjxwKTVRRGKV7UFR',
-        network: 'TRON',
-        addedAt: new Date('2024-01-25').toISOString(),
-        note: 'My main TRON wallet',
-      },
-      {
-        id: 'addr_002',
-        label: 'Exchange Deposit',
-        address: 'TMZxQ9BbKVk3hXFmfN7JfYJKzVxYvW8XYZ',
-        network: 'TRON',
-        addedAt: new Date('2024-03-10').toISOString(),
-      },
-    ],
+    linkedBankAccounts: [],
+    savedAddresses: [],
     withdrawalLimits: {
       dailyUSD: 10000,
       dailyUSDT: 5000,
@@ -143,25 +91,73 @@ const DUMMY_SETTINGS: UserSettings = {
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  settings: DUMMY_SETTINGS,
+  settings: null,
+  loginHistory: [],
   isLoading: false,
   error: null,
 
   fetchSettings: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      set({ settings: DUMMY_SETTINGS, isLoading: false });
+      const response = await apiClient.get('/auth/me');
+      const user = response.data.data.user;
+
+      // Transform API user to UserSettings
+      const settings: UserSettings = {
+        profile: {
+          fullName: user.name,
+          email: user.email,
+          emailVerified: true, // Mock
+          phone: user.phone || '',
+          phoneVerified: false, // Mock
+          username: user.username || user.email.split('@')[0],
+          accountType: user.role === 'ADMIN' ? 'business' : 'individual',
+          accountId: user.id,
+          userReferenceId: user.userReferenceId,
+          createdAt: user.createdAt,
+          avatar: undefined
+        },
+        // Security from User + Defaults
+        security: {
+          ...DUMMY_SETTINGS.security,
+          twoFactorEnabled: user.twoFactorEnabled || false,
+          twoFactorMethod: user.twoFactorMethod || 'authenticator',
+          // activeSessions stub retained for now
+        },
+        walletSettings: { ...DUMMY_SETTINGS.walletSettings },
+        notifications: { ...DUMMY_SETTINGS.notifications },
+        preferences: { ...DUMMY_SETTINGS.preferences }
+      };
+
+      set({ settings, isLoading: false });
     } catch (error) {
+      console.error('Fetch settings error:', error);
       set({ error: 'Failed to fetch settings', isLoading: false });
+    }
+  },
+
+  fetchLoginHistory: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await apiClient.get('/auth/history');
+      set({ loginHistory: response.data.data.history, isLoading: false });
+    } catch (error) {
+      console.error('Fetch login history error:', error);
+      set({ error: 'Failed to fetch login history', isLoading: false });
     }
   },
 
   updateProfile: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const updatePayload: any = {};
+      if (data.fullName !== undefined) updatePayload.name = data.fullName;
+      if (data.username !== undefined) updatePayload.username = data.username;
+      if (data.phone !== undefined) updatePayload.phone = data.phone;
+
+      const response = await apiClient.patch('/auth/me', updatePayload);
+      const updatedUser = response.data.data.user;
+
       const currentSettings = get().settings;
       if (currentSettings) {
         set({
@@ -169,43 +165,36 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             ...currentSettings,
             profile: {
               ...currentSettings.profile,
-              ...data,
-            },
+              fullName: updatedUser.name,
+              username: updatedUser.username,
+              phone: updatedUser.phone || ''
+            }
           },
-          isLoading: false,
+          isLoading: false
         });
       }
-    } catch (error) {
-      set({ error: 'Failed to update profile', isLoading: false });
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || 'Failed to update profile';
+      set({ error: errMsg, isLoading: false });
     }
   },
 
   changePassword: async (currentPassword, newPassword) => {
     set({ isLoading: true, error: null });
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const currentSettings = get().settings;
-      if (currentSettings) {
-        set({
-          settings: {
-            ...currentSettings,
-            security: {
-              ...currentSettings.security,
-              lastPasswordChange: new Date().toISOString(),
-            },
-          },
-          isLoading: false,
-        });
-      }
-    } catch (error) {
-      set({ error: 'Failed to change password', isLoading: false });
+      await apiClient.post('/auth/change-password', { currentPassword, newPassword });
+      // Password changed successfully
+      set({ isLoading: false });
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || 'Failed to change password';
+      set({ error: errMsg, isLoading: false });
     }
   },
 
   enable2FA: async (method) => {
     set({ isLoading: true, error: null });
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await apiClient.post('/auth/2fa/enable', { method });
       const currentSettings = get().settings;
       if (currentSettings) {
         set({
@@ -215,21 +204,22 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
               ...currentSettings.security,
               twoFactorEnabled: true,
               twoFactorMethod: method,
-              backupCodesGenerated: true,
+              backupCodesGenerated: true, // Mocked for now
             },
           },
           isLoading: false,
         });
       }
-    } catch (error) {
-      set({ error: 'Failed to enable 2FA', isLoading: false });
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || 'Failed to enable 2FA';
+      set({ error: errMsg, isLoading: false });
     }
   },
 
   disable2FA: async () => {
     set({ isLoading: true, error: null });
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await apiClient.post('/auth/2fa/disable');
       const currentSettings = get().settings;
       if (currentSettings) {
         set({
@@ -243,8 +233,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           isLoading: false,
         });
       }
-    } catch (error) {
-      set({ error: 'Failed to disable 2FA', isLoading: false });
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || 'Failed to disable 2FA';
+      set({ error: errMsg, isLoading: false });
     }
   },
 
@@ -436,19 +427,48 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       await new Promise((resolve) => setTimeout(resolve, 600));
       const currentSettings = get().settings;
       if (currentSettings) {
+        const updatedPreferences = {
+          ...currentSettings.preferences,
+          ...preferences,
+        };
+
+        // Persist theme and currency to cookies
+        if (preferences.theme) {
+          Cookies.set('theme', preferences.theme, { expires: 365 });
+        }
+        if (preferences.primaryCurrency) {
+          Cookies.set('primaryCurrency', preferences.primaryCurrency, { expires: 365 });
+        }
+
         set({
           settings: {
             ...currentSettings,
-            preferences: {
-              ...currentSettings.preferences,
-              ...preferences,
-            },
+            preferences: updatedPreferences,
           },
           isLoading: false,
         });
       }
     } catch (error) {
       set({ error: 'Failed to update preferences', isLoading: false });
+    }
+  },
+
+  loadPreferencesFromCookies: () => {
+    const theme = Cookies.get('theme') as 'light' | 'dark' | 'system' | undefined;
+    const primaryCurrency = Cookies.get('primaryCurrency');
+
+    const currentSettings = get().settings;
+    if (currentSettings) {
+      set({
+        settings: {
+          ...currentSettings,
+          preferences: {
+            ...currentSettings.preferences,
+            ...(theme && { theme }),
+            ...(primaryCurrency && { primaryCurrency }),
+          },
+        },
+      });
     }
   },
 

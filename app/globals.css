@@ -120,7 +120,31 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Accessibility: High Contrast Mode */
+.high-contrast {
+  --border: oklch(0.5 0 0);
+  --input: oklch(0.5 0 0);
+}
+
+.dark.high-contrast {
+  --border: oklch(0.8 0 0);
+  --input: oklch(0.8 0 0);
+  --muted: oklch(0.35 0 0);
+  --accent: oklch(0.35 0 0);
+}
+
+/* Accessibility: Reduce Motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }

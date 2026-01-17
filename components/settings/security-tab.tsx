@@ -42,7 +42,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 export function SecurityTab() {
-  const { settings, fetchSettings, changePassword, enable2FA, disable2FA, revokeSession, isLoading } = useSettingsStore();
+  const { settings, fetchSettings, loginHistory, fetchLoginHistory, changePassword, enable2FA, disable2FA, revokeSession, isLoading } = useSettingsStore();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -50,7 +50,8 @@ export function SecurityTab() {
 
   useEffect(() => {
     fetchSettings();
-  }, [fetchSettings]);
+    fetchLoginHistory();
+  }, [fetchSettings, fetchLoginHistory]);
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
@@ -205,64 +206,54 @@ export function SecurityTab() {
         </CardContent>
       </Card>
 
-      {/* Active Sessions */}
+      {/* Login Activity */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Monitor className="h-5 w-5" />
-            Active Sessions
+            Login Activity
           </CardTitle>
           <CardDescription>
-            Manage devices that are currently logged in to your account
+            Recent login attempts to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {settings.security.activeSessions.map((session) => (
-              <div
-                key={session.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="space-y-1 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{session.device}</p>
-                    {session.isCurrent && (
-                      <Badge variant="default" className="text-xs">
-                        Current Session
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Smartphone className="h-3 w-3" />
-                      {session.browser} • {session.os}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {session.location}
-                    </span>
-                    <span>•</span>
-                    <span>{session.ipAddress}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    Last active: {formatRelativeTime(session.lastActive)}
+            {!loginHistory || loginHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-4 text-center">No login activity recorded yet.</p>
+            ) : (
+              loginHistory.map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">{activity.ipAddress}</p>
+                      {activity.status === 'SUCCESS' ? (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">Success</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-xs">Failed</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Smartphone className="h-3 w-3" />
+                        {activity.userAgent?.substring(0, 50) || 'Unknown User Agent'}...
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {new Date(activity.createdAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                      })}
+                    </div>
                   </div>
                 </div>
-                {!session.isCurrent && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRevokeSession(session.id)}
-                    disabled={isLoading}
-                  >
-                    Revoke
-                  </Button>
-                )}
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
