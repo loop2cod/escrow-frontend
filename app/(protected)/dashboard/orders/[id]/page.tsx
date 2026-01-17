@@ -636,7 +636,7 @@ export default function ContractDetailPage() {
                                 <FileText className="h-3 w-3" /> Agreement Preview
                             </span>
                         </div>
-                        <div className="">
+                        <div className="h-fit">
                             {pdfUrl ? (
                                 <div className="">
                                     <PdfPreview file={pdfUrl} />

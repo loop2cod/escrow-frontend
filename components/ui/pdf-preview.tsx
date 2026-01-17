@@ -17,7 +17,7 @@ export default function PdfPreview({ file, className }: PdfPreviewProps) {
     console.log(file);
     const [numPages, setNumPages] = useState<number | null>(null);
     const [pageNumber, setPageNumber] = useState(1);
-    const [scale, setScale] = useState(1.0);
+    const [scale, setScale] = useState(0.9);
     const [isLoading, setIsLoading] = useState(true);
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -84,22 +84,22 @@ export default function PdfPreview({ file, className }: PdfPreviewProps) {
             </div>
 
             {/* Viewer */}
-            <div className="border rounded-md overflow-hidden bg-slate-100 dark:bg-slate-900 p-4 w-full flex justify-center min-h-[500px]">
+            <div className="border rounded-md overflow-auto bg-slate-100 dark:bg-slate-900 p-4 w-full flex h-[600px] md:h-[850px]">
                 <Document
                     file={file}
                     onLoadSuccess={onDocumentLoadSuccess}
                     loading={
-                        <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
+                        <div className="flex flex-col items-center justify-center p-12 text-muted-foreground w-full h-full">
                             <Loader2 className="h-8 w-8 animate-spin mb-4" />
                             <span>Loading PDF...</span>
                         </div>
                     }
                     error={
-                        <div className="flex items-center justify-center p-12 text-destructive">
+                        <div className="flex items-center justify-center p-12 text-destructive w-full h-full m-auto">
                             Failed to load PDF document.
                         </div>
                     }
-                    className="shadow-lg"
+                    className="shadow-lg m-auto"
                 >
                     <Page
                         pageNumber={pageNumber}
