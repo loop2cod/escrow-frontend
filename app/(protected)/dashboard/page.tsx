@@ -21,6 +21,11 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
+  User,
+  Mail,
+  IdCard,
+  Copy,
+  Check,
 } from "lucide-react"
 import apiClient from "@/lib/api-client";
 import Link from "next/link";
@@ -58,12 +63,15 @@ interface Activity {
   status?: string;
 }
 
+interface UserData {
+  userReferenceId: string;
+  id: string;
+  name: string;
+  email: string;
+}
+
 interface DashboardData {
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  user?: UserData;
   stats: DashboardStats;
   wallets?: any[];
   recentContracts: Contract[];
@@ -385,6 +393,66 @@ function ActivityCard({ activities }: { activities: Activity[] }) {
   );
 }
 
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="ml-1 p-1 rounded hover:bg-muted transition-colors"
+      title={copied ? "Copied!" : `Copy ${label}`}
+    >
+      {copied ? (
+        <Check className="h-3 w-3 text-emerald-500" />
+      ) : (
+        <Copy className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+      )}
+    </button>
+  );
+}
+
+function UserProfileCard({ user }: { user?: UserData }) {
+  if (!user) return null;
+
+  return (
+    <Card className="p-3 border-0 shadow-md bg-gradient-to-r from-primary/5 via-card to-muted/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 shrink-0">
+            <User className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm">{user.name}</p>
+            <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Mail className="h-3 w-3" />
+                <span className="truncate max-w-[140px] sm:max-w-[200px]">{user.email}</span>
+                <CopyButton value={user.email} label="email" />
+              </span>
+              <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+              <span className="flex items-center gap-1">
+                <IdCard className="h-3 w-3" />
+                <span>{user.userReferenceId}</span>
+                <CopyButton value={user.userReferenceId} label="User ID" />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function QuickActionsCard() {
   const actions = [
     { icon: Plus, label: "New Order", href: "/dashboard/orders/create" },
@@ -538,6 +606,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
+
+      {/* User Profile Row */}
+      <UserProfileCard user={data?.user} />
 
       {/* Balance & Escrow Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
