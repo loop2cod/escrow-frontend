@@ -69,15 +69,6 @@ const navigation: NavGroup[] = [
     label: "FINANCE",
     items: [
       { title: "Wallet", href: "/dashboard/wallet", icon: Wallet },
-      {
-        title: "Accounts",
-        href: "/dashboard/wallet/usd-account",
-        icon: Landmark,
-        items: [
-          { title: "USD Account", href: "/dashboard/wallet/usd-account", icon: Landmark },
-          { title: "USDT Wallet", href: "/dashboard/wallet/usdt-wallet", icon: CreditCard },
-        ],
-      },
       { title: "Transactions", href: "/dashboard/wallet/transactions", icon: Receipt },
     ],
   },
@@ -85,7 +76,7 @@ const navigation: NavGroup[] = [
     label: "SUPPORT",
     items: [
       { title: "Settings", href: "/dashboard/settings", icon: Settings },
-      { title: "Help Center", href: "/dashboard/help", icon: HelpCircle },
+      // { title: "Help Center", href: "/dashboard/help", icon: HelpCircle },
     ],
   },
 ];
