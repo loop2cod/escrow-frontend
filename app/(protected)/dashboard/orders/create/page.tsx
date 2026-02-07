@@ -25,14 +25,14 @@ export default function CreateContractPage() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sellerValidation, setSellerValidation] = useState<{ valid: boolean; name?: string } | null>(null);
-  const [isValidatingSeller, setIsValidatingSeller] = useState(false);
+  const [buyerValidation, setBuyerValidation] = useState<{ valid: boolean; name?: string } | null>(null);
+  const [isValidatingBuyer, setIsValidatingBuyer] = useState(false);
 
   // Form Data
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    sellerEmail: "", // Invite Seller
+    buyerEmail: "", // Invite Buyer
     currency: "USDT",
     terms: "",
     milestones: [{ title: "", description: "", amount: "" }] as Milestone[],
@@ -57,7 +57,7 @@ export default function CreateContractPage() {
       setFormData({
         title: contract.title || "",
         description: contract.description || "",
-        sellerEmail: contract.seller?.email || "",
+        buyerEmail: contract.buyer?.email || "",
         currency: contract.currency || "USDT",
         terms: contract.terms || "",
         milestones: contract.milestones.length > 0 ? contract.milestones.map((m: any) => ({
@@ -81,9 +81,9 @@ export default function CreateContractPage() {
         }
       }
 
-      // Pre-validate seller logic if exists
-      if (contract.seller) {
-        setSellerValidation({ valid: true, name: contract.seller.name });
+      // Pre-validate buyer logic if exists
+      if (contract.buyer) {
+        setBuyerValidation({ valid: true, name: contract.buyer.name });
       }
 
     } catch (err) {
@@ -94,19 +94,19 @@ export default function CreateContractPage() {
     }
   };
 
-  const validateSeller = async (identifier: string) => {
+  const validateBuyer = async (identifier: string) => {
     try {
-      setIsValidatingSeller(true);
+      setIsValidatingBuyer(true);
       const res = await apiClient.post('/contracts/validate-user', { identifier });
       if (res.data.status) {
-        setSellerValidation({ valid: true, name: res.data.data.user.name });
+        setBuyerValidation({ valid: true, name: res.data.data.user.name });
       } else {
-        setSellerValidation({ valid: false });
+        setBuyerValidation({ valid: false });
       }
     } catch (err) {
-      setSellerValidation({ valid: false });
+      setBuyerValidation({ valid: false });
     } finally {
-      setIsValidatingSeller(false);
+      setIsValidatingBuyer(false);
     }
   };
 
@@ -149,7 +149,7 @@ export default function CreateContractPage() {
         terms: formData.terms,
         totalAmount: totalAmount,
         currency: formData.currency,
-        sellerEmail: formData.sellerEmail || null,
+        buyerEmail: formData.buyerEmail || null,
         milestones: formData.milestones.map(m => ({
           title: m.title,
           description: m.description,
@@ -202,7 +202,7 @@ export default function CreateContractPage() {
 
       // Finalize Status
       if (draftId) {
-        await apiClient.put(`/contracts/${draftId}`, { status: 'PENDING_ACCEPTANCE' }); // Or whatever the active status is
+        await apiClient.put(`/contracts/${draftId}`, { status: 'PENDING_REVIEW' });
       } else {
         // Fallback if saveDraft failed to set ID? (Unlikely)
         throw new Error("Draft ID missing");
@@ -218,7 +218,7 @@ export default function CreateContractPage() {
   };
 
   return (
-    <div className="w-full space-y-6 pt-6 animate-in fade-in">
+    <div className="w-full space-y-4 animate-in fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dashboard/orders">
@@ -252,10 +252,10 @@ export default function CreateContractPage() {
           formData={formData}
           updateFormData={updateFormData}
           setStep={handleNextStep}
-          sellerValidation={sellerValidation}
-          validateSeller={validateSeller}
-          setSellerValidation={setSellerValidation}
-          isValidatingSeller={isValidatingSeller}
+          buyerValidation={buyerValidation}
+          validateBuyer={validateBuyer}
+          setBuyerValidation={setBuyerValidation}
+          isValidatingBuyer={isValidatingBuyer}
         />
       )}
 

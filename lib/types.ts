@@ -223,6 +223,16 @@ export interface ActiveSession {
   isCurrent: boolean;
 }
 
+export interface LoginActivity {
+  id: string;
+  userId: string;
+  ipAddress: string;
+  userAgent: string;
+  location: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface BankAccount {
   id: string;
   bankName: string;
@@ -260,6 +270,7 @@ export interface UserSettings {
     username: string;
     accountType: 'individual' | 'business';
     accountId: string;
+    userReferenceId?: string;
     createdAt: string;
   };
 
@@ -310,10 +321,12 @@ export interface UserSettings {
 
 export interface SettingsState {
   settings: UserSettings | null;
+  loginHistory: LoginActivity[];
   isLoading: boolean;
   error: string | null;
 
   fetchSettings: () => Promise<void>;
+  fetchLoginHistory: () => Promise<void>;
   updateProfile: (data: Partial<UserSettings['profile']>) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   enable2FA: (method: 'authenticator' | 'sms' | 'email') => Promise<void>;
@@ -326,5 +339,6 @@ export interface SettingsState {
   removeSavedAddress: (addressId: string) => Promise<void>;
   updateNotifications: (preferences: Partial<UserSettings['notifications']>) => Promise<void>;
   updatePreferences: (preferences: Partial<UserSettings['preferences']>) => Promise<void>;
+  loadPreferencesFromCookies: () => void;
   clearError: () => void;
 }

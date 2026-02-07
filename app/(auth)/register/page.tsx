@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Select } from '@/components/ui/select';
 import { UserRole } from '@/lib/types';
+import { Mail } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading, error, clearError } = useAuthStore();
+  const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,18 +28,44 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
-      const user = useAuthStore.getState().user;
-
-      // Redirect based on role
-      if (user?.role === UserRole.ADMIN) {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+      setIsSuccess(true);
+      // We do not redirect here, we show the verification message
     } catch (err) {
       // Error is already set in store
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md p-8 text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">Check your email</h1>
+            <p className="text-muted-foreground">
+              We've sent a verification link to <span className="font-medium text-foreground">{formData.email}</span>.
+              Please click the link to activate your account.
+            </p>
+          </div>
+
+          <div className="pt-4 space-y-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push('/login')}
+            >
+              Back to Login
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">

@@ -18,7 +18,7 @@ interface UserDetail {
     createdAt: string;
     wallets: {
         id: string;
-        network: 'TRON' | 'ETHEREUM' | 'SOLANA' | 'BITCOIN';
+        network: 'TRON' | 'ETHEREUM' | 'BITCOIN';
         address: string;
         currency: string;
         balance: string;
@@ -93,8 +93,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             case 'TRONNILE': return { color: 'text-red-600', bg: 'bg-red-50', icon: <img src="/coin-icons/tron-trx-logo.png" alt="TRX" className="h-5 w-5" /> };
             case 'ETHEREUM':
             case 'ETHEREUMSEPOLIA': return { color: 'text-indigo-600', bg: 'bg-indigo-50', icon: <img src="/coin-icons/ethereum-eth-logo.png" alt="ETH" className="h-5 w-5" /> };
-            case 'SOLANA':
-            case 'SOLANADEVNET': return { color: 'text-purple-600', bg: 'bg-purple-50', icon: <img src="/coin-icons/solana-sol-logo.png" alt="SOL" className="h-5 w-5" /> };
             case 'BITCOIN':
             case 'BITCOINTESTNET3': return { color: 'text-orange-600', bg: 'bg-orange-50', icon: <img src="/coin-icons/bitcoin-btc-logo.png" alt="BTC" className="h-5 w-5" /> };
             default: return { color: 'text-gray-600', bg: 'bg-gray-100', icon: <Wallet className="h-4 w-4" /> };
@@ -106,7 +104,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         const mapping: Record<string, string> = {
             'TRONNILE': 'TRON',
             'ETHEREUMSEPOLIA': 'ETHEREUM',
-            'SOLANADEVNET': 'SOLANA',
             'BITCOINTESTNET3': 'BITCOIN'
         };
         const targetNetwork = mapping[network] || network;
@@ -190,11 +187,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                 {!hasWallet('ETHEREUM') && !hasWallet('ETHEREUMSEPOLIA') && (
                                     <Button variant="outline" size="sm" className="h-7 text-xs justify-start" onClick={() => handleCreateWallet('ETHEREUM')} disabled={isActionLoading}>
                                         <PlusCircle className="mr-1.5 h-3 w-3" /> ETH
-                                    </Button>
-                                )}
-                                {!hasWallet('SOLANA') && !hasWallet('SOLANADEVNET') && (
-                                    <Button variant="outline" size="sm" className="h-7 text-xs justify-start" onClick={() => handleCreateWallet('SOLANA')} disabled={isActionLoading}>
-                                        <PlusCircle className="mr-1.5 h-3 w-3" /> SOL
                                     </Button>
                                 )}
                             </div>

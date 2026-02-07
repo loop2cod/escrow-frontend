@@ -22,8 +22,8 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="account" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 w-fit">
           <TabsTrigger value="account" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Account</span>
@@ -32,14 +32,10 @@ export default function SettingsPage() {
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
-          <TabsTrigger value="wallet" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">Wallet</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+          {/* <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             <span className="hidden sm:inline">Notifications</span>
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Preferences</span>
@@ -54,13 +50,9 @@ export default function SettingsPage() {
           <SecurityTab />
         </TabsContent>
 
-        <TabsContent value="wallet">
-          <WalletSettingsTab />
-        </TabsContent>
-
-        <TabsContent value="notifications">
+        {/* <TabsContent value="notifications">
           <NotificationsTab />
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="preferences">
           <PreferencesTab />
