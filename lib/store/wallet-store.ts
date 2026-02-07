@@ -28,6 +28,7 @@ const DUMMY_WALLET_OVERVIEW: WalletOverview = {
     address: 'TJRabPrwbZy45sbavfcjxwKTVRRGKV7UFR',
     publicKey: '04a1b2c3d4e5f6...',
     balance: 850.50,
+    usdtBalance: 850.50,
     trxBalance: 15.75,
     status: 'active',
     createdAt: new Date('2024-01-15').toISOString(),

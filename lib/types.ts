@@ -100,72 +100,93 @@ export interface Wallet {
   updatedAt: string;
 }
 
-// TRON USDT Wallet (Legacy/Specific type for UI)
-export interface TronUSDTWallet {
+// ============================================
+// CONTRACT TYPES
+// ============================================
+
+export type ContractStatus = 
+  | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'PENDING_ACCEPTANCE'
+  | 'AGREED'
+  | 'PAYMENT_SUBMITTED'
+  | 'IN_PROGRESS'
+  | 'DELIVERED'
+  | 'DELIVERY_REVIEWED'
+  | 'COMPLETED'
+  | 'DISPUTED'
+  | 'CANCELLED'
+  | 'REJECTED';
+
+export interface Milestone {
+  id: string;
+  title: string;
+  description: string;
+  amount: number;
+  currency: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'PAID';
+  dueDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Contract {
+  id: string;
+  title: string;
+  description: string;
+  terms?: string;
+  totalAmount: number;
+  currency: string;
+  status: ContractStatus;
+  buyerId: string;
+  sellerId: string;
+  buyer?: User;
+  seller?: User;
+  milestones: Milestone[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
+// WALLET TYPES
+// ============================================
+
+export interface BridgeAccount {
+  id: string;
+  userId: string;
+  accountNumber: string;
+  routingNumber: string;
+  balance: number;
+  availableBalance: number;
+  currency: string;
+  status: string;
+  bridgeAccountId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TronWallet {
   id: string;
   userId: string;
   address: string;
   publicKey: string;
   balance: number;
+  usdtBalance: number;
   trxBalance: number;
-  status: 'active' | 'pending' | 'locked';
+  status: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Transaction types
-export type TransactionType = 'deposit' | 'withdraw' | 'transfer' | 'escrow_lock' | 'escrow_release' | 'convert';
-export type TransactionStatus = 'pending' | 'completed' | 'failed' | 'cancelled';
-export type CurrencyType = 'USD' | 'USDT' | 'TRX';
-export type AccountType = 'bridge_account' | 'tron_wallet' | 'external' | 'escrow';
-
-// Wallet Transaction
-export interface WalletTransaction {
-  id: string;
-  userId: string;
-  type: TransactionType;
-  status: TransactionStatus;
-  amount: number;
-  currency: CurrencyType;
-
-  source: {
-    type: AccountType;
-    identifier: string;
-  };
-  destination: {
-    type: AccountType;
-    identifier: string;
-  };
-
-  fee: number;
-  netAmount: number;
-  txHash?: string;
-  bridgeTransactionId?: string;
-
-  description?: string;
-  orderId?: string;
-  createdAt: string;
-  completedAt?: string;
-}
-
-// Escrow Locked Funds
-export interface LockedFunds {
-  totalLocked: number;
-  currency: 'USD' | 'USDT';
-  activeOrders: number;
-  breakdown: Array<{
-    orderId: string;
-    orderTitle: string;
-    amount: number;
-    lockedAt: string;
-  }>;
-}
-
-// Wallet Overview Summary
 export interface WalletOverview {
-  bridgeAccount: BridgeUSDAccount;
-  tronWallet: TronUSDTWallet;
-  lockedFunds: LockedFunds;
+  bridgeAccount: BridgeAccount;
+  tronWallet: TronWallet;
+  lockedFunds: {
+    totalLocked: number;
+    activeOrders: number;
+    currency?: string;
+    breakdown?: any[];
+  };
   totalBalance: {
     usd: number;
     usdt: number;
@@ -174,45 +195,99 @@ export interface WalletOverview {
   };
 }
 
-// Transaction Filters
+export interface WalletTransaction {
+  id: string;
+  userId: string;
+  type: 'deposit' | 'withdraw' | 'escrow_lock' | 'escrow_release' | 'convert' | 'transfer';
+  status: 'pending' | 'completed' | 'failed';
+  amount: number;
+  currency: string;
+  source: {
+    type: string;
+    identifier: string;
+  };
+  destination: {
+    type: string;
+    identifier: string;
+  };
+  fee: number;
+  netAmount: number;
+  bridgeTransactionId?: string;
+  txHash?: string;
+  description: string;
+  orderId?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
 export interface TransactionFilters {
-  type?: TransactionType;
-  status?: TransactionStatus;
-  currency?: CurrencyType;
-  startDate?: string;
-  endDate?: string;
+  type?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  currency?: string;
   search?: string;
 }
 
-// Wallet Store State
 export interface WalletState {
   walletOverview: WalletOverview | null;
-  wallets: Wallet[]; // List of all backend wallets
+  wallets: any[];
   transactions: WalletTransaction[];
   isLoading: boolean;
   error: string | null;
-
+  filters?: TransactionFilters;
+  fetchOverview?: () => Promise<void>;
   fetchWalletOverview: () => Promise<void>;
   fetchTransactions: (filters?: TransactionFilters) => Promise<void>;
-  refreshBalances: () => Promise<void>;
-
   depositUSD: (amount: number) => Promise<void>;
   withdrawUSD: (amount: number, bankAccountId: string) => Promise<void>;
-
-  sendUSDT: (to: string, amount: number) => Promise<void>;
-
-  convertUSDToUSDT: (amount: number) => Promise<void>;
-  convertUSDTToUSD: (amount: number) => Promise<void>;
-
-  clearError: () => void;
+  depositUSDT?: (amount: number) => Promise<void>;
+  withdrawUSDT?: (amount: number, address: string) => Promise<void>;
+  sendUSDT: (toAddress: string, amount: number) => Promise<void>;
+  refreshBalances: () => Promise<void>;
+  setFilters?: (filters: TransactionFilters) => void;
   setLoading: (loading: boolean) => void;
+  clearError: () => void;
+}
+
+// ============================================
+// NOTIFICATION TYPES
+// ============================================
+
+export interface NotificationPreferences {
+  transactions: boolean;
+  orders: boolean;
+  security: boolean;
+  marketing: boolean;
 }
 
 // ============================================
 // SETTINGS TYPES
 // ============================================
 
-export interface ActiveSession {
+export interface BankAccount {
+  id: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  bankName: string;
+  accountType: 'checking' | 'savings';
+  isDefault: boolean;
+  verified: boolean;
+  addedAt: string;
+  last4?: string;
+}
+
+export interface SavedAddress {
+  id: string;
+  label: string;
+  address: string;
+  network: string;
+  isDefault: boolean;
+  addedAt: string;
+  note?: string;
+}
+
+export interface LoginActivity {
   id: string;
   device: string;
   browser: string;
@@ -221,42 +296,9 @@ export interface ActiveSession {
   location: string;
   lastActive: string;
   isCurrent: boolean;
-}
-
-export interface LoginActivity {
-  id: string;
-  userId: string;
-  ipAddress: string;
-  userAgent: string;
-  location: string;
-  status: string;
-  createdAt: string;
-}
-
-export interface BankAccount {
-  id: string;
-  bankName: string;
-  accountType: 'checking' | 'savings';
-  last4: string;
-  isDefault: boolean;
-  verified: boolean;
-  addedAt: string;
-}
-
-export interface SavedAddress {
-  id: string;
-  label: string;
-  address: string;
-  network: 'TRON' | 'ETH' | 'BTC';
-  addedAt: string;
-  note?: string;
-}
-
-export interface NotificationPreferences {
-  transactions: boolean;
-  orders: boolean;
-  security: boolean;
-  marketing: boolean;
+  status?: 'SUCCESS' | 'FAILED';
+  userAgent?: string;
+  createdAt?: string;
 }
 
 export interface UserSettings {
@@ -270,7 +312,7 @@ export interface UserSettings {
     username: string;
     accountType: 'individual' | 'business';
     accountId: string;
-    userReferenceId?: string;
+    userReferenceId: string;
     createdAt: string;
   };
 
@@ -278,8 +320,8 @@ export interface UserSettings {
     twoFactorEnabled: boolean;
     twoFactorMethod: 'authenticator' | 'sms' | 'email';
     backupCodesGenerated: boolean;
-    lastPasswordChange?: string;
-    activeSessions: ActiveSession[];
+    lastPasswordChange: string;
+    activeSessions: LoginActivity[];
   };
 
   walletSettings: {
@@ -332,13 +374,95 @@ export interface SettingsState {
   enable2FA: (method: 'authenticator' | 'sms' | 'email') => Promise<void>;
   disable2FA: () => Promise<void>;
   revokeSession: (sessionId: string) => Promise<void>;
-  addBankAccount: (account: Omit<BankAccount, 'id' | 'addedAt' | 'verified'>) => Promise<void>;
+  addBankAccount: (account: Partial<Omit<BankAccount, 'id' | 'addedAt' | 'verified'>>) => Promise<void>;
   removeBankAccount: (accountId: string) => Promise<void>;
   setDefaultBankAccount: (accountId: string) => Promise<void>;
-  addSavedAddress: (address: Omit<SavedAddress, 'id' | 'addedAt'>) => Promise<void>;
+  addSavedAddress: (address: Partial<Omit<SavedAddress, 'id' | 'addedAt'>>) => Promise<void>;
   removeSavedAddress: (addressId: string) => Promise<void>;
   updateNotifications: (preferences: Partial<UserSettings['notifications']>) => Promise<void>;
   updatePreferences: (preferences: Partial<UserSettings['preferences']>) => Promise<void>;
   loadPreferencesFromCookies: () => void;
+  clearError: () => void;
+}
+
+// ============================================
+// CHAT TYPES
+// ============================================
+
+export type MessageType = 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
+export type MessageStatus = 'SENT' | 'DELIVERED' | 'READ';
+
+export interface Message {
+  id: string;
+  contractId: string;
+  senderId: string;
+  content: string;
+  type: MessageType;
+  status: MessageStatus;
+  createdAt: string;
+  updatedAt: string;
+  sender: {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    userReferenceId?: string;
+  };
+}
+
+export interface ChatSummary {
+  contractId: string;
+  title: string;
+  status: ContractStatus;
+  buyer: {
+    id: string;
+    name: string;
+    email: string;
+    userReferenceId?: string;
+  };
+  seller: {
+    id: string;
+    name: string;
+    email: string;
+    userReferenceId?: string;
+  };
+  totalMessages: number;
+  lastMessage: Message | null;
+  updatedAt: string;
+}
+
+export interface ChatState {
+  messages: Message[];
+  isLoading: boolean;
+  isSending: boolean;
+  error: string | null;
+  unreadCount: number;
+  typingUsers: string[];
+  
+  // Actions
+  fetchMessages: (contractId: string) => Promise<void>;
+  sendMessage: (contractId: string, content: string) => Promise<void>;
+  markAsRead: (contractId: string) => Promise<void>;
+  fetchUnreadCount: (contractId: string) => Promise<void>;
+  addMessage: (message: Message) => void;
+  updateMessageStatus: (messageId: string, status: 'SENT' | 'DELIVERED' | 'READ') => void;
+  setTyping: (contractId: string, isTyping: boolean) => void;
+  clearError: () => void;
+}
+
+// Admin chat types
+export interface AdminChatState {
+  chats: ChatSummary[];
+  isLoading: boolean;
+  error: string | null;
+  stats: {
+    totalMessages: number;
+    todayMessages: number;
+    activeChats: number;
+  };
+  
+  // Actions
+  fetchAllChats: (params?: { status?: string; limit?: number }) => Promise<void>;
+  fetchChatStats: () => Promise<void>;
   clearError: () => void;
 }

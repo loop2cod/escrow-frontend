@@ -241,7 +241,7 @@ export function SecurityTab() {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {new Date(activity.createdAt).toLocaleString('en-US', {
+                      {new Date(activity.createdAt || activity.lastActive).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',

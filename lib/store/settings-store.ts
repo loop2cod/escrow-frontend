@@ -274,7 +274,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           id: `bank_${Date.now()}`,
           verified: false,
           addedAt: new Date().toISOString(),
-        };
+        } as BankAccount;
         set({
           settings: {
             ...currentSettings,
@@ -355,7 +355,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           ...address,
           id: `addr_${Date.now()}`,
           addedAt: new Date().toISOString(),
-        };
+        } as SavedAddress;
         set({
           settings: {
             ...currentSettings,

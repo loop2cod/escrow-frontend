@@ -44,6 +44,7 @@ import { format } from "date-fns";
 import { pdf } from '@react-pdf/renderer';
 import { ContractPdfDocument } from "../create/steps/Step4PdfDocument";
 import PdfPreview from "@/components/ui/pdf-preview";
+import { FloatingOrderChat } from "@/components/chat/FloatingOrderChat";
 
 // Types matching backend
 interface Milestone {
@@ -137,7 +138,7 @@ export default function OrderDetailPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [myWallets, setMyWallets] = useState<UserWallet[]>([]);
-  
+
   // PDF State
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -149,7 +150,7 @@ export default function OrderDetailPage() {
     title: string;
     description: string;
     action: () => void;
-  }>({ open: false, title: "", description: "", action: () => {} });
+  }>({ open: false, title: "", description: "", action: () => { } });
 
   // Timeline form state
   const [timelineForm, setTimelineForm] = useState({ title: "", description: "" });
@@ -159,16 +160,16 @@ export default function OrderDetailPage() {
     if (!id) return;
     if (showLoading) setIsLoading(true);
     setIsRefreshing(true);
-    
+
     try {
       const res = await apiClient.get<{ data: { contract: Contract } }>(`/contracts/${id}`);
       setContract(res.data.data.contract);
     } catch (error: any) {
       console.error("Error fetching contract:", error);
-      toast({ 
-        title: "Error", 
-        description: error.response?.data?.message || "Failed to fetch order details", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to fetch order details",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -246,10 +247,10 @@ export default function OrderDetailPage() {
       await fetchContract(false);
     } catch (error: any) {
       console.error("Action failed:", error);
-      toast({ 
-        title: "Error", 
-        description: error.response?.data?.message || "Action failed", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Action failed",
+        variant: "destructive"
       });
     } finally {
       setActionLoading(false);
@@ -281,10 +282,10 @@ export default function OrderDetailPage() {
       toast({ title: "Success", description: "Timeline item added" });
       await fetchContract(false);
     } catch (error: any) {
-      toast({ 
-        title: "Error", 
-        description: error.response?.data?.message || "Failed to add timeline item", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to add timeline item",
+        variant: "destructive"
       });
     } finally {
       setIsAddingTimeline(false);
@@ -338,7 +339,7 @@ export default function OrderDetailPage() {
 
   // Calculate progress
   const totalMilestones = contract.milestones?.length || 0;
-  const completedMilestones = contract.milestones?.filter(m => 
+  const completedMilestones = contract.milestones?.filter(m =>
     ['APPROVED', 'PAID'].includes(m.status)
   ).length || 0;
   const progressPercent = totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
@@ -346,7 +347,7 @@ export default function OrderDetailPage() {
   // Get next payable milestone
   const sortedMilestones = [...(contract.milestones || [])].sort((a, b) => a.order - b.order);
   const nextMilestone = sortedMilestones.find(m => m.status === 'PENDING');
-  
+
   // Check if can pay
   const myUsdtWallet = myWallets.find(w => w.currency === 'USDT' && w.network === 'TRON');
   const canPay = nextMilestone && myUsdtWallet && parseFloat(myUsdtWallet.balance) >= parseFloat(nextMilestone.amount);
@@ -373,10 +374,10 @@ export default function OrderDetailPage() {
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2 -ml-2" 
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 -ml-2"
             onClick={() => router.push('/dashboard/orders')}
           >
             <ArrowLeft className="h-4 w-4 mr-1" /> Orders
@@ -400,20 +401,20 @@ export default function OrderDetailPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => fetchContract(false)} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchContract(false)}
               disabled={isRefreshing}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            
+
             {/* Cancel Action */}
             {['DRAFT', 'PENDING_REVIEW', 'PENDING_ACCEPTANCE'].includes(contract.status) && (isBuyer || isSeller) && (
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 size="sm"
                 onClick={() => openConfirmDialog(
                   "Cancel Order",
@@ -440,7 +441,7 @@ export default function OrderDetailPage() {
               </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary transition-all duration-500 rounded-full"
                 style={{ width: `${progressPercent}%` }}
               />
@@ -530,9 +531,9 @@ export default function OrderDetailPage() {
                     <code className="text-[10px] font-mono flex-1 truncate">
                       {contract.contract_wallets.address}
                     </code>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-6 w-6 shrink-0"
                       onClick={() => copyToClipboard(contract.contract_wallets!.address, "Address")}
                     >
@@ -568,8 +569,8 @@ export default function OrderDetailPage() {
                     value={timelineForm.description}
                     onChange={(e) => setTimelineForm(prev => ({ ...prev, description: e.target.value }))}
                   />
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="w-full"
                     disabled={!timelineForm.title || isAddingTimeline}
                     onClick={addTimelineItem}
@@ -603,7 +604,7 @@ export default function OrderDetailPage() {
           </Card>
         </div>
 
-        {/* Center Column - Terms & Agreement (MAIN FOCUS) */}
+        {/* Center Column - Terms, Agreement & Chat (MAIN FOCUS) */}
         <div className="lg:col-span-6 space-y-6">
           {/* Terms & Agreement Document */}
           <Card className="border-0 shadow-md">
@@ -613,8 +614,8 @@ export default function OrderDetailPage() {
                   <FileText className="h-5 w-5" /> Terms & Agreement
                 </CardTitle>
                 {pdfUrl && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => window.open(pdfUrl, '_blank')}
                   >
@@ -665,7 +666,7 @@ export default function OrderDetailPage() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-emerald-900 text-sm mb-1">Accept Contract</h3>
                   <p className="text-xs text-emerald-700 mb-3">Review the terms and accept to proceed.</p>
-                  <Button 
+                  <Button
                     size="sm"
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                     onClick={() => openConfirmDialog(
@@ -688,7 +689,7 @@ export default function OrderDetailPage() {
                   <p className="text-xs text-orange-700 mb-3">
                     Pay {parseFloat(nextMilestone.amount).toLocaleString()} {contract.currency}
                   </p>
-                  
+
                   {/* External Payment */}
                   {contract.contract_wallets && (
                     <div className="mb-3">
@@ -710,7 +711,7 @@ export default function OrderDetailPage() {
                   )}
 
                   <div className="space-y-2">
-                    <Button 
+                    <Button
                       size="sm"
                       variant="secondary"
                       className="w-full text-xs"
@@ -722,9 +723,9 @@ export default function OrderDetailPage() {
                     >
                       I&apos;ve Sent Funds
                     </Button>
-                    
+
                     {canPay && (
-                      <Button 
+                      <Button
                         size="sm"
                         className="w-full text-xs"
                         onClick={() => openConfirmDialog(
@@ -762,7 +763,7 @@ export default function OrderDetailPage() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-indigo-900 text-sm mb-1">Work in Progress</h3>
                   <p className="text-xs text-indigo-700 mb-3">Complete work and submit for review.</p>
-                  <Button 
+                  <Button
                     size="sm"
                     className="w-full bg-indigo-600 hover:bg-indigo-700"
                     onClick={() => openConfirmDialog(
@@ -783,7 +784,7 @@ export default function OrderDetailPage() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-green-900 text-sm mb-1">Confirm Delivery</h3>
                   <p className="text-xs text-green-700 mb-3">Release funds to complete the order.</p>
-                  <Button 
+                  <Button
                     size="sm"
                     className="w-full bg-green-600 hover:bg-green-700"
                     onClick={() => openConfirmDialog(
@@ -906,6 +907,16 @@ export default function OrderDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Floating Order Chat */}
+      <FloatingOrderChat
+        contractId={contract.id}
+        buyerId={contract.buyerId}
+        sellerId={contract.sellerId}
+        buyerName={contract.buyer?.name || 'Buyer'}
+        sellerName={contract.seller?.name || 'Seller'}
+        orderStatus={contract.status}
+      />
     </div>
   );
 }
