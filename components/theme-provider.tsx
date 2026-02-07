@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
     theme: Theme;
@@ -13,15 +13,18 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>('system');
+    const [theme, setThemeState] = useState<Theme>('light');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-        // Load theme from cookie on mount
+        // Load theme from cookie on mount, default to 'light'
         const savedTheme = Cookies.get('theme') as Theme | undefined;
-        if (savedTheme) {
+        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
             setThemeState(savedTheme);
+        } else {
+            // If no valid theme in cookie, set default to light
+            Cookies.set('theme', 'light', { expires: 365 });
         }
     }, []);
 
@@ -30,17 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
         const root = window.document.documentElement;
         root.classList.remove('light', 'dark');
-
-        let effectiveTheme: 'light' | 'dark' = 'light';
-
-        if (theme === 'system') {
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            effectiveTheme = systemTheme;
-        } else {
-            effectiveTheme = theme;
-        }
-
-        root.classList.add(effectiveTheme);
+        root.classList.add(theme);
     }, [theme, mounted]);
 
     const setTheme = (newTheme: Theme) => {

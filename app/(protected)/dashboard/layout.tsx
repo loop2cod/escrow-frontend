@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { UserRole } from "@/lib/types";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import { Bell, Search, Sun, ChevronDown, Menu, LayoutDashboard } from "lucide-react";
+import { Bell, Search, Sun, Moon, ChevronDown, Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
+import { useTheme } from "@/components/theme-provider";
 
 function UserNav() {
   const { user } = useAuthStore();
@@ -58,6 +59,29 @@ function UserNav() {
   );
 }
 
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 rounded-full"
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+      title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+    >
+      {theme === 'light' ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
+      <span className="sr-only">
+        {theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+      </span>
+    </Button>
+  );
+}
+
 function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header className="flex h-14 items-center lg:justify-end justify-between gap-4 px-4 lg:px-6 shrink-0 bg-card border-b">
@@ -92,9 +116,7 @@ function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
       {/* Right Actions */}
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Theme Toggle */}
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-          <Sun className="h-4 w-4" />
-        </Button>
+        <ThemeToggle />
 
         {/* User Nav */}
         {/* <UserNav /> */}

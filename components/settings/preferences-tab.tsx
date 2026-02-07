@@ -19,7 +19,7 @@ export function PreferencesTab() {
     fetchSettings();
   }, [fetchSettings]);
 
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
     // Also update in settings store for persistence
     updatePreferences({ theme: newTheme });
@@ -67,7 +67,7 @@ export function PreferencesTab() {
           <div className="space-y-2">
             <Label>Theme</Label>
             <RadioGroup value={theme} onValueChange={handleThemeChange}>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2 p-3 border rounded-lg">
                   <RadioGroupItem value="light" id="light" />
                   <Label htmlFor="light" className="cursor-pointer">
@@ -78,12 +78,6 @@ export function PreferencesTab() {
                   <RadioGroupItem value="dark" id="dark" />
                   <Label htmlFor="dark" className="cursor-pointer">
                     Dark
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                  <RadioGroupItem value="system" id="system" />
-                  <Label htmlFor="system" className="cursor-pointer">
-                    System
                   </Label>
                 </div>
               </div>

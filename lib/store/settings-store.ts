@@ -76,7 +76,7 @@ const DUMMY_SETTINGS: UserSettings = {
   },
 
   preferences: {
-    theme: 'system',
+    theme: 'light',
     language: 'en',
     timezone: 'America/Los_Angeles',
     dateFormat: 'MM/DD/YYYY',
@@ -454,7 +454,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   loadPreferencesFromCookies: () => {
-    const theme = Cookies.get('theme') as 'light' | 'dark' | 'system' | undefined;
+    const theme = Cookies.get('theme') as 'light' | 'dark' | undefined;
     const primaryCurrency = Cookies.get('primaryCurrency');
 
     const currentSettings = get().settings;

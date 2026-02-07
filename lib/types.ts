@@ -305,7 +305,7 @@ export interface UserSettings {
   };
 
   preferences: {
-    theme: 'light' | 'dark' | 'system';
+    theme: 'light' | 'dark';
     language: string;
     timezone: string;
     dateFormat: string;
