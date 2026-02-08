@@ -48,7 +48,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden py-4 sm:py-8 px-4">
       {/* Grid Pattern Background */}
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none"
         style={{
@@ -60,10 +60,10 @@ export default function LoginPage() {
       {/* Radial Gradient Overlay for Vignette Effect */}
       <div className="absolute inset-0 z-0 bg-background/80 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_100%)] pointer-events-none"></div>
 
-      <Card className="w-full max-w-[400px] p-8 z-10 border-border/50 bg-card/95 backdrop-blur shadow-2xl">
-        <div className="flex flex-col items-center mb-8 text-center space-y-4">
+      <Card className="w-full max-w-[400px] p-6 sm:p-8 z-10 border-border/50 bg-card/95 backdrop-blur shadow-2xl">
+        <div className="flex flex-col items-center mb-6 sm:mb-8 text-center space-y-3 sm:space-y-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Welcome Back</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Welcome Back</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Please sign in to continue
             </p>
@@ -125,11 +125,11 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="remember" className="border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
+            <div className="flex items-center gap-2">
+              <Checkbox id="remember" className="h-4 w-4 border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
               <label
                 htmlFor="remember"
-                className="text-muted-foreground cursor-pointer font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm text-muted-foreground cursor-pointer font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Remember me
               </label>
@@ -182,7 +182,7 @@ export default function LoginPage() {
             </Button>
           </div> */}
 
-          <p className="text-center text-sm text-muted-foreground pt-4">
+          <p className="text-center text-sm text-muted-foreground pt-2 sm:pt-4">
             Don&apos;t have an account?{' '}
             <Link href="/register" className="text-primary hover:underline font-medium">
               Sign up

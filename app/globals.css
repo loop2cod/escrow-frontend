@@ -177,16 +177,6 @@
   }
 }
 
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-
-  /* Larger touch targets on mobile */
-  button,
-  a {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
 
 /* Responsive grid helpers */
 @media (max-width: 640px) {

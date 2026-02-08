@@ -31,7 +31,7 @@ export default function Page() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="h-12 w-12 text-primary" />
+        <Loader2 className="h-12 w-12 text-primary animate-spin" />
       </div>
     </div>
   );

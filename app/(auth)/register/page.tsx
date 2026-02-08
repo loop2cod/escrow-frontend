@@ -37,8 +37,8 @@ export default function RegisterPage() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <Card className="w-full max-w-md p-8 text-center space-y-6">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8 sm:py-0">
+        <Card className="w-full max-w-md p-6 sm:p-8 text-center space-y-6">
           <div className="flex justify-center">
             <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
               <Mail className="h-8 w-8 text-primary" />
@@ -68,16 +68,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md p-5">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Create Account</h1>
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-background px-4 py-6 sm:py-8">
+      <Card className="w-full max-w-md p-5 sm:p-6">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Create Account</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Sign up for your escrow account
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           {error && (
             <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-md">
               {error}
