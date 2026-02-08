@@ -69,6 +69,11 @@ const navigation: NavGroup[] = [
         href: "/admin/chat",
         icon: MessageCircle,
       },
+      {
+        title: "Settings",
+        href: "/admin/settings",
+        icon: Settings,
+      },
     ],
   }
 ];

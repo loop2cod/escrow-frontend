@@ -203,7 +203,7 @@ function QuickActionsCard() {
     { icon: Users, label: "Manage Users", href: "/admin/users", color: "bg-blue-500" },
     { icon: ShoppingCart, label: "View Orders", href: "/admin/orders", color: "bg-emerald-500" },
     { icon: Activity, label: "Live Chat", href: "/admin/chat", color: "bg-purple-500" },
-    { icon: Shield, label: "Admin Settings", href: "#", color: "bg-slate-500" },
+    { icon: Shield, label: "Admin Settings", href: "/admin/settings", color: "bg-slate-500" },
   ];
 
   return (
