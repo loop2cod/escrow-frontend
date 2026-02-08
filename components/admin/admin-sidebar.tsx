@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Users,
   ShoppingCart,
+  MessageCircle,
   Settings,
   Shield,
   LogOut,
@@ -62,6 +63,11 @@ const navigation: NavGroup[] = [
         title: "Orders",
         href: "/admin/orders",
         icon: ShoppingCart,
+      },
+      {
+        title: "Chat",
+        href: "/admin/chat",
+        icon: MessageCircle,
       },
     ],
   }
