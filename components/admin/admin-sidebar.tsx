@@ -53,41 +53,18 @@ const navigation: NavGroup[] = [
     label: "MAIN",
     items: [
       { title: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
-      { title: "AI Assistant", href: "/admin/ai-assistant", icon: Bot },
       {
         title: "Users",
         href: "/admin/users",
         icon: Users,
-        items: [
-          { title: "All Users", href: "/admin/users", icon: Users },
-          { title: "Admins", href: "/admin/users/admins", icon: UserCog },
-        ],
       },
       {
-        title: "Projects",
+        title: "Orders",
         href: "/admin/orders",
         icon: ShoppingCart,
-        items: [
-          { title: "All Projects", href: "/admin/orders", icon: ShoppingCart },
-          { title: "Active", href: "/admin/orders/active", icon: ShoppingCart },
-        ],
       },
     ],
-  },
-  {
-    label: "ADMIN",
-    items: [
-      { title: "Admin Management", href: "/admin/management", icon: UserCog },
-      { title: "Admin Roles", href: "/admin/roles", icon: Shield },
-      { title: "Settings", href: "/admin/settings", icon: Settings },
-    ],
-  },
-  {
-    label: "DEMOS",
-    items: [
-      { title: "UI Component", href: "/admin/components", icon: Component },
-    ],
-  },
+  }
 ];
 
 function NavItemComponent({

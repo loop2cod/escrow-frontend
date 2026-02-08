@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { UserRole } from "@/lib/types";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebarComponent } from "@/components/admin/admin-sidebar";
-import { Bell, Search, Sun, ChevronDown, Menu, Shield } from "lucide-react";
+import { Sun, Moon, ChevronDown, Menu, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
+import { useTheme } from "@/components/theme-provider";
 
 function UserNav() {
   const { user } = useAuthStore();
@@ -36,17 +37,17 @@ function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative flex items-center gap-2 h-9 px-2 hover:bg-accent rounded-full"
+          className="relative flex items-center gap-2 lg:h-9 h-5 hover:bg-accent rounded-full ring-0 p-0 focus-visible:ring-0 focus-visible:outline-none focus:outline-none"
         >
           <Avatar className="h-8 w-8 rounded-full">
             <AvatarFallback className="bg-primary/20 text-primary text-xs font-medium rounded-full">
               {user?.username ? getInitials(user.username) : "AD"}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:inline text-sm font-medium">
+          <span className="hidden md:inline text-sm font-medium">
             {user?.username || "Admin"}
           </span>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground mr-2" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
@@ -58,9 +59,32 @@ function UserNav() {
   );
 }
 
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 rounded-full"
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+      title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+    >
+      {theme === 'light' ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
+      <span className="sr-only">
+        {theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+      </span>
+    </Button>
+  );
+}
+
 function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
   return (
-    <header className="flex h-16 items-center gap-4 px-4 lg:px-6 shrink-0">
+    <header className="flex h-14 items-center lg:justify-end justify-between gap-4 px-4 lg:px-6 shrink-0 bg-card border-b">
       {/* Mobile Menu Button */}
       <Button
         variant="ghost"
@@ -73,7 +97,7 @@ function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
       </Button>
 
       {/* Search */}
-      <div className="flex-1 max-w-md">
+      {/* <div className="flex-1 max-w-md">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -87,23 +111,15 @@ function TopNav({ onMenuClick }: { onMenuClick: () => void }) {
             </kbd>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Right Actions */}
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Theme Toggle */}
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hidden sm:flex">
-          <Sun className="h-4 w-4" />
-        </Button>
-
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
-        </Button>
+        <ThemeToggle />
 
         {/* User Nav */}
-        <UserNav />
+        {/* <UserNav /> */}
       </div>
     </header>
   );
@@ -160,7 +176,7 @@ export default function AdminLayout({
             <main className="flex-1 flex flex-col rounded-2xl bg-card h-full overflow-hidden min-w-0">
               <TopNav onMenuClick={() => setMobileMenuOpen(true)} />
               <div className="flex-1 overflow-auto p-4 lg:p-6">
-                <div className="mx-auto max-w-7xl">
+                <div className="mx-auto">
                   {children}
                 </div>
               </div>
