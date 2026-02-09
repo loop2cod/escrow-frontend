@@ -17,10 +17,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
   Settings,
   User,
   Shield,
   Activity,
+  Wallet,
   Save,
   RefreshCw,
   AlertCircle,
@@ -34,6 +45,12 @@ import {
   ChevronLeft,
   ChevronRight,
   LogIn,
+  Plus,
+  Send,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import apiClient from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +78,30 @@ interface LoginActivity {
   userAgent: string | null;
   location: string | null;
   timestamp: string;
+}
+
+interface WalletData {
+  id: string;
+  network: string;
+  address: string;
+  currency: string;
+  balance?: string;
+  dfnsWalletId?: string;
+  createdAt: string;
+}
+
+interface Transaction {
+  id: string;
+  network: string;
+  currency: string;
+  status: string;
+  kind: string;
+  direction: string;
+  hash?: string;
+  dateCreated: string;
+  amount: string;
+  to?: string;
+  from?: string;
 }
 
 interface Pagination {
@@ -108,6 +149,24 @@ export default function AdminSettingsPage() {
     totalPages: 0,
   });
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Wallet state
+  const [wallets, setWallets] = useState<WalletData[]>([]);
+  const [walletsLoading, setWalletsLoading] = useState(false);
+  const [creatingWallet, setCreatingWallet] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
+
+  // Transfer state
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferToAddress, setTransferToAddress] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
+  const [transferCurrency, setTransferCurrency] = useState("TRX");
+  const [transferring, setTransferring] = useState(false);
+
+  // Transactions state
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionsDialogOpen, setTransactionsDialogOpen] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -157,9 +216,49 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const fetchWallets = async () => {
+    try {
+      setWalletsLoading(true);
+      const response = await apiClient.get("/admin/wallets");
+      if (response.data.status && response.data.data.wallets) {
+        setWallets(response.data.data.wallets);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch wallets:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to load wallets",
+      });
+    } finally {
+      setWalletsLoading(false);
+    }
+  };
+
+  const fetchWalletTransactions = async (walletId: string) => {
+    try {
+      setTransactionsLoading(true);
+      const response = await apiClient.get(`/admin/wallets/${walletId}/transactions`);
+      if (response.data.status && response.data.data.transactions) {
+        setTransactions(response.data.data.transactions);
+        setTransactionsDialogOpen(true);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch transactions:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to load transactions",
+      });
+    } finally {
+      setTransactionsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
     fetchActivities(1, statusFilter);
+    fetchWallets();
   }, []);
 
   useEffect(() => {
@@ -276,6 +375,118 @@ export default function AdminSettingsPage() {
     fetchActivities(1, value);
   };
 
+  const handleCreateTrxWallet = async () => {
+    try {
+      setCreatingWallet(true);
+      const response = await apiClient.post("/admin/wallets/trx");
+      if (response.data.status) {
+        toast({
+          title: "Success",
+          description: "TRX wallet created successfully",
+        });
+        fetchWallets();
+      }
+    } catch (error: any) {
+      console.error("Failed to create wallet:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to create wallet",
+      });
+    } finally {
+      setCreatingWallet(false);
+    }
+  };
+
+  const handleTransfer = async () => {
+    // Validation
+    if (!selectedWallet) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No wallet selected",
+      });
+      return;
+    }
+
+    if (!transferToAddress || !transferAmount) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Recipient address and amount are required",
+      });
+      return;
+    }
+
+    // Basic TRON address validation
+    if (transferCurrency === "TRX" && !transferToAddress.startsWith("T")) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Invalid TRON address format",
+      });
+      return;
+    }
+
+    const amountNum = parseFloat(transferAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Invalid amount",
+      });
+      return;
+    }
+
+    try {
+      setTransferring(true);
+      const response = await apiClient.post("/admin/wallets/transfer", {
+        walletId: selectedWallet.id,
+        toAddress: transferToAddress,
+        amount: transferAmount,
+        currency: transferCurrency,
+      });
+      if (response.data.status) {
+        toast({
+          title: "Success",
+          description: `Transfer initiated. Transaction ID: ${response.data.data.txId}`,
+        });
+        setTransferDialogOpen(false);
+        setTransferToAddress("");
+        setTransferAmount("");
+        fetchWallets();
+      }
+    } catch (error: any) {
+      console.error("Failed to transfer:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.response?.data?.message || "Transfer failed",
+      });
+    } finally {
+      setTransferring(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: "Address copied to clipboard",
+    });
+  };
+
+  const openTransferDialog = (wallet: WalletData) => {
+    setSelectedWallet(wallet);
+    setTransferCurrency(wallet.currency);
+    setTransferDialogOpen(true);
+  };
+
+  const openTransactionsDialog = async (wallet: WalletData) => {
+    setSelectedWallet(wallet);
+    await fetchWalletTransactions(wallet.id);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "SUCCESS":
@@ -297,6 +508,32 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const getTransactionStatusBadge = (status: string) => {
+    switch (status) {
+      case "Completed":
+      case "Confirmed":
+        return (
+          <Badge variant="default" className="bg-emerald-500/10 text-emerald-500">
+            {status}
+          </Badge>
+        );
+      case "Pending":
+        return (
+          <Badge variant="default" className="bg-amber-500/10 text-amber-500">
+            {status}
+          </Badge>
+        );
+      case "Failed":
+        return (
+          <Badge variant="destructive" className="bg-red-500/10 text-red-500">
+            {status}
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -305,6 +542,8 @@ export default function AdminSettingsPage() {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const hasTrxWallet = wallets.some((w) => w.network === "TRON");
 
   if (loading) {
     return (
@@ -333,7 +572,7 @@ export default function AdminSettingsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admin Settings</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your admin account and view login activity
+            Manage your admin account, wallet, and view login activity
           </p>
         </div>
         {hasChanges && (
@@ -347,7 +586,7 @@ export default function AdminSettingsPage() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-fit">
+        <TabsList className="grid w-full grid-cols-4 lg:w-fit">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -356,9 +595,13 @@ export default function AdminSettingsPage() {
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
+          <TabsTrigger value="wallet" className="flex items-center gap-2">
+            <Wallet className="h-4 w-4" />
+            <span className="hidden sm:inline">Wallet</span>
+          </TabsTrigger>
           <TabsTrigger value="activity" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">Login Activity</span>
+            <span className="hidden sm:inline">Activity</span>
           </TabsTrigger>
         </TabsList>
 
@@ -474,6 +717,12 @@ export default function AdminSettingsPage() {
                 <Separator />
 
                 <div className="space-y-4">
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Account ID</Label>
+                    <code className="text-xs bg-muted px-2 py-1 rounded block truncate">
+                      {profile?.userReferenceId}
+                    </code>
+                  </div>
 
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Role</Label>
@@ -608,10 +857,11 @@ export default function AdminSettingsPage() {
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`h-10 w-10 rounded-full flex items-center justify-center ${profile?.twoFactorEnabled
-                        ? "bg-emerald-500/10 text-emerald-500"
-                        : "bg-slate-500/10 text-slate-500"
-                        }`}
+                      className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                        profile?.twoFactorEnabled
+                          ? "bg-emerald-500/10 text-emerald-500"
+                          : "bg-slate-500/10 text-slate-500"
+                      }`}
                     >
                       <ShieldCheck className="h-5 w-5" />
                     </div>
@@ -652,6 +902,166 @@ export default function AdminSettingsPage() {
                     settings.
                   </AlertDescription>
                 </Alert>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Wallet Tab */}
+        <TabsContent value="wallet" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Wallets List Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wallet className="h-5 w-5" />
+                      Your Wallets
+                    </CardTitle>
+                    <CardDescription>
+                      Manage your TRX and other wallets
+                    </CardDescription>
+                  </div>
+                  {!hasTrxWallet && (
+                    <Button
+                      onClick={handleCreateTrxWallet}
+                      disabled={creatingWallet}
+                      size="sm"
+                    >
+                      {creatingWallet ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4 mr-2" />
+                      )}
+                      Create TRX
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {walletsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading wallets...</p>
+                  </div>
+                ) : wallets.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <p className="text-muted-foreground mb-4">No wallets found</p>
+                    <Button
+                      onClick={handleCreateTrxWallet}
+                      disabled={creatingWallet}
+                    >
+                      {creatingWallet ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4 mr-2" />
+                      )}
+                      Create TRX Wallet
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {wallets.map((wallet) => (
+                      <div
+                        key={wallet.id}
+                        className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">{wallet.network}</Badge>
+                              <Badge variant="secondary">{wallet.currency}</Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <code className="bg-muted px-2 py-1 rounded text-xs">
+                                {wallet.address.slice(0, 12)}...{wallet.address.slice(-8)}
+                              </code>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => copyToClipboard(wallet.address)}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold">
+                              {parseFloat(wallet.balance || "0").toFixed(2)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{wallet.currency}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openTransferDialog(wallet)}
+                          >
+                            <Send className="h-4 w-4 mr-2" />
+                            Send
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openTransactionsDialog(wallet)}
+                            disabled={transactionsLoading}
+                          >
+                            {transactionsLoading && selectedWallet?.id === wallet.id ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <ArrowUpRight className="h-4 w-4 mr-2" />
+                            )}
+                            Transactions
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Wallet Info Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Wallet Information</CardTitle>
+                <CardDescription>
+                  About your admin wallet
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Your admin wallet is used for platform operations and testing.
+                    Keep your wallet credentials secure.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium">Supported Networks</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">TRON (TRX)</Badge>
+                    <Badge variant="outline">Ethereum</Badge>
+                    <Badge variant="outline">Bitcoin</Badge>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-medium">Important Notes</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Wallet creation is handled securely via DFNS</li>
+                    <li>Transactions cannot be reversed once confirmed</li>
+                    <li>Always verify recipient addresses before sending</li>
+                    <li>Keep your private keys secure</li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -769,6 +1179,150 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Transfer Dialog */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Send {transferCurrency}</DialogTitle>
+            <DialogDescription>
+              Transfer funds from your {selectedWallet?.network} wallet
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>From Wallet</Label>
+              <div className="p-3 rounded-lg bg-muted text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{selectedWallet?.network}</span>
+                  <span>{parseFloat(selectedWallet?.balance || "0").toFixed(2)} {selectedWallet?.currency}</span>
+                </div>
+                <code className="text-xs text-muted-foreground">
+                  {selectedWallet?.address}
+                </code>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="toAddress">Recipient Address</Label>
+              <Input
+                id="toAddress"
+                value={transferToAddress}
+                onChange={(e) => setTransferToAddress(e.target.value)}
+                placeholder={`Enter ${transferCurrency} address`}
+              />
+              {transferCurrency === "TRX" && (
+                <p className="text-xs text-muted-foreground">
+                  TRON addresses start with &quot;T&quot;
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={handleTransfer}
+              disabled={!transferToAddress || !transferAmount || transferring}
+            >
+              {transferring ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transactions Dialog */}
+      <Dialog open={transactionsDialogOpen} onOpenChange={setTransactionsDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Wallet Transactions</DialogTitle>
+            <DialogDescription>
+              Transaction history for {selectedWallet?.network} wallet
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {transactions.length === 0 ? (
+              <div className="text-center py-8">
+                <ArrowUpRight className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground">No transactions found</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {transactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="p-4 rounded-lg border bg-card"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                            tx.direction === "incoming"
+                              ? "bg-emerald-500/10 text-emerald-500"
+                              : "bg-blue-500/10 text-blue-500"
+                          }`}
+                        >
+                          {tx.direction === "incoming" ? (
+                            <ArrowDownLeft className="h-5 w-5" />
+                          ) : (
+                            <ArrowUpRight className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium capitalize">
+                            {tx.direction} {tx.currency}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(tx.dateCreated), "MMM d, yyyy HH:mm")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-bold ${
+                          tx.direction === "incoming" ? "text-emerald-500" : ""
+                        }`}>
+                          {tx.direction === "incoming" ? "+" : "-"}
+                          {parseFloat(tx.amount).toFixed(6)} {tx.currency}
+                        </p>
+                        {getTransactionStatusBadge(tx.status)}
+                      </div>
+                    </div>
+                    {tx.hash && (
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Transaction Hash</span>
+                          <code className="bg-muted px-2 py-1 rounded">
+                            {tx.hash.slice(0, 20)}...{tx.hash.slice(-8)}
+                          </code>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

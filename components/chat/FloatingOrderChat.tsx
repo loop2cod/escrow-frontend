@@ -8,11 +8,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { Message, UserRole } from '@/lib/types';
 import apiClient from '@/lib/api-client';
-import { 
-  Send, 
-  Loader2, 
-  MessageCircle, 
-  CheckCheck, 
+import {
+  Send,
+  Loader2,
+  MessageCircle,
+  CheckCheck,
   Check,
   X,
   Minimize2,
@@ -53,12 +53,12 @@ const playMessageSound = () => {
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.3);
-  } catch {}
+  } catch { }
 };
 
-export function FloatingOrderChat({ 
-  contractId, 
-  buyerName, 
+export function FloatingOrderChat({
+  contractId,
+  buyerName,
   sellerName,
   buyerId,
   sellerId,
@@ -79,13 +79,13 @@ export function FloatingOrderChat({
   const [unreadCount, setUnreadCount] = useState(0);
   const [lastMessage, setLastMessage] = useState<Message | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const pendingRef = useRef<Map<string, { tempId: string; content: string }>>(new Map());
   const isOpenRef = useRef(isOpen);
-  
+
   isOpenRef.current = isOpen;
 
   // Get or create global socket
@@ -128,17 +128,17 @@ export function FloatingOrderChat({
 
     const onNewMessage = (data: { contractId: string; message: Message }) => {
       if (data.contractId !== contractId) return;
-      
+
       const msg = data.message;
       const pending = pendingRef.current.get(msg.content);
-      
+
       setMessages(prev => {
         // Case 1: This is our own message coming back from server
         if (pending && msg.senderId === user?.id) {
           // Replace temp with real
           return prev.map(m => m.id === pending.tempId ? msg : m);
         }
-        
+
         // Case 2: Message from someone else
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
@@ -154,17 +154,17 @@ export function FloatingOrderChat({
       // Handle notifications for messages from others
       if (msg.senderId !== user?.id) {
         socket.emit('message-received', { messageId: msg.id, contractId });
-        
+
         if (isOpenRef.current) {
           socket.emit('message-read', { messageId: msg.id, contractId });
-          apiClient.patch(`/chat/${contractId}/read`).catch(() => {});
+          apiClient.patch(`/chat/${contractId}/read`).catch(() => { });
         } else {
           setUnreadCount(c => c + 1);
           setShowPreview(true);
           setTimeout(() => setShowPreview(false), 6000);
           if (soundEnabled) playMessageSound();
-          
-          if (Notification.permission === 'granted') {
+
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             new Notification('New Message', {
               body: `${msg.sender.name}: ${msg.content}`,
               icon: '/favicon.ico',
@@ -216,7 +216,7 @@ export function FloatingOrderChat({
       onConnect();
     }
 
-    if (Notification.permission === 'default') {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       Notification.requestPermission();
     }
 
@@ -224,7 +224,7 @@ export function FloatingOrderChat({
     setIsLoading(true);
     apiClient.get(`/chat/${contractId}/messages`).then(res => {
       setMessages(res.data.data.messages);
-      apiClient.patch(`/chat/${contractId}/read`).catch(() => {});
+      apiClient.patch(`/chat/${contractId}/read`).catch(() => { });
     }).finally(() => setIsLoading(false));
 
     return () => {
@@ -237,7 +237,7 @@ export function FloatingOrderChat({
       socket.off('message-delivered', onDelivered);
       socket.off('message-read', onRead);
       socket.emit('leave-contract', contractId);
-      
+
       if (globalSocketUsers <= 0) {
         socket.disconnect();
         globalSocket = null;
@@ -263,7 +263,7 @@ export function FloatingOrderChat({
   // Send message - ONLY use socket, let server broadcast back
   const handleSend = useCallback(async () => {
     if (!inputMessage.trim() || !socketRef.current || isSending) return;
-    
+
     setIsSending(true);
     const content = inputMessage.trim();
     setInputMessage('');
@@ -287,7 +287,7 @@ export function FloatingOrderChat({
     try {
       // Only emit via socket - server will create message and broadcast back
       socketRef.current.emit('send-message', { contractId, content, type: 'TEXT' });
-      
+
       // The server will broadcast the message back via 'new-message' event
       // which will replace the temp message
     } catch {
@@ -347,14 +347,14 @@ export function FloatingOrderChat({
               </div>
             </div>
           )}
-          
+
           {!isConnected && (
             <div className="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-medium flex items-center gap-1">
               <WifiOff className="h-2.5 w-2.5" />
               <span className="hidden sm:inline">Reconnecting...</span>
             </div>
           )}
-          
+
           <Button onClick={() => setIsOpen(true)} className={cn("h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl hover:scale-110 relative", isConnected ? "bg-primary" : "bg-amber-500", unreadCount > 0 && "animate-pulse")}>
             {isConnected ? <MessageCircle className="h-5 w-5 sm:h-7 sm:w-7" /> : <WifiOff className="h-4 w-4 sm:h-6 sm:w-6" />}
             {unreadCount > 0 && (
