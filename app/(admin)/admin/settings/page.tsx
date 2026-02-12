@@ -22,10 +22,15 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import Link from "next/link";
 import {
   Settings,
   User,
@@ -50,7 +55,10 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Copy,
-  ExternalLink,
+  Coins,
+  ChevronDown,
+  RotateCw,
+  List,
 } from "lucide-react";
 import apiClient from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
@@ -80,6 +88,16 @@ interface LoginActivity {
   timestamp: string;
 }
 
+interface Asset {
+  symbol: string;
+  name: string;
+  decimals: number;
+  balance: string;
+  balanceRaw: string;
+  contractAddress: string | null;
+  chain: string;
+}
+
 interface WalletData {
   id: string;
   network: string;
@@ -88,20 +106,9 @@ interface WalletData {
   balance?: string;
   dfnsWalletId?: string;
   createdAt: string;
-}
-
-interface Transaction {
-  id: string;
-  network: string;
-  currency: string;
-  status: string;
-  kind: string;
-  direction: string;
-  hash?: string;
-  dateCreated: string;
-  amount: string;
-  to?: string;
-  from?: string;
+  assets: Asset[];
+  totalAssets: number;
+  refreshedAt?: string;
 }
 
 interface Pagination {
@@ -109,6 +116,8 @@ interface Pagination {
   limit: number;
   total: number;
   totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 function Breadcrumb() {
@@ -147,26 +156,27 @@ export default function AdminSettingsPage() {
     limit: 10,
     total: 0,
     totalPages: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
   });
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Wallet state
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [walletsLoading, setWalletsLoading] = useState(false);
+  const [refreshingWallet, setRefreshingWallet] = useState<string | null>(null);
   const [creatingWallet, setCreatingWallet] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
+  const [expandedAssets, setExpandedAssets] = useState<string | null>(null);
 
   // Transfer state
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [transferToAddress, setTransferToAddress] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
-  const [transferCurrency, setTransferCurrency] = useState("TRX");
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [transferring, setTransferring] = useState(false);
 
-  // Transactions state
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [transactionsLoading, setTransactionsLoading] = useState(false);
-  const [transactionsDialogOpen, setTransactionsDialogOpen] = useState(false);
+
 
   const fetchProfile = async () => {
     try {
@@ -235,23 +245,29 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const fetchWalletTransactions = async (walletId: string) => {
+  const refreshWallet = async (walletId: string) => {
     try {
-      setTransactionsLoading(true);
-      const response = await apiClient.get(`/admin/wallets/${walletId}/transactions`);
-      if (response.data.status && response.data.data.transactions) {
-        setTransactions(response.data.data.transactions);
-        setTransactionsDialogOpen(true);
+      setRefreshingWallet(walletId);
+      const response = await apiClient.get(`/admin/wallets/${walletId}/refresh`);
+      if (response.data.status && response.data.data.wallet) {
+        const updatedWallet = response.data.data.wallet;
+        setWallets((prev) =>
+          prev.map((w) => (w.id === walletId ? updatedWallet : w))
+        );
+        toast({
+          title: "Success",
+          description: "Wallet balance refreshed",
+        });
       }
     } catch (error: any) {
-      console.error("Failed to fetch transactions:", error);
+      console.error("Failed to refresh wallet:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error?.response?.data?.message || "Failed to load transactions",
+        description: error?.response?.data?.message || "Failed to refresh balance",
       });
     } finally {
-      setTransactionsLoading(false);
+      setRefreshingWallet(null);
     }
   };
 
@@ -300,7 +316,6 @@ export default function AdminSettingsPage() {
   };
 
   const handleChangePassword = async () => {
-    // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast({
         variant: "destructive",
@@ -399,12 +414,11 @@ export default function AdminSettingsPage() {
   };
 
   const handleTransfer = async () => {
-    // Validation
-    if (!selectedWallet) {
+    if (!selectedWallet || !selectedAsset) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No wallet selected",
+        description: "No wallet or asset selected",
       });
       return;
     }
@@ -414,16 +428,6 @@ export default function AdminSettingsPage() {
         variant: "destructive",
         title: "Error",
         description: "Recipient address and amount are required",
-      });
-      return;
-    }
-
-    // Basic TRON address validation
-    if (transferCurrency === "TRX" && !transferToAddress.startsWith("T")) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Invalid TRON address format",
       });
       return;
     }
@@ -438,22 +442,34 @@ export default function AdminSettingsPage() {
       return;
     }
 
+    const assetBalance = parseFloat(selectedAsset.balance);
+    if (assetBalance < amountNum) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Insufficient ${selectedAsset.symbol} balance. Available: ${selectedAsset.balance}`,
+      });
+      return;
+    }
+
     try {
       setTransferring(true);
       const response = await apiClient.post("/admin/wallets/transfer", {
         walletId: selectedWallet.id,
         toAddress: transferToAddress,
         amount: transferAmount,
-        currency: transferCurrency,
+        assetSymbol: selectedAsset.symbol,
+        contractAddress: selectedAsset.contractAddress,
       });
       if (response.data.status) {
         toast({
           title: "Success",
-          description: `Transfer initiated. Transaction ID: ${response.data.data.txId}`,
+          description: `${selectedAsset.symbol} transfer initiated. Transaction ID: ${response.data.data.txId}`,
         });
         setTransferDialogOpen(false);
         setTransferToAddress("");
         setTransferAmount("");
+        setSelectedAsset(null);
         fetchWallets();
       }
     } catch (error: any) {
@@ -476,15 +492,16 @@ export default function AdminSettingsPage() {
     });
   };
 
-  const openTransferDialog = (wallet: WalletData) => {
+  const openTransferDialog = (wallet: WalletData, asset: Asset) => {
     setSelectedWallet(wallet);
-    setTransferCurrency(wallet.currency);
+    setSelectedAsset(asset);
     setTransferDialogOpen(true);
   };
 
-  const openTransactionsDialog = async (wallet: WalletData) => {
-    setSelectedWallet(wallet);
-    await fetchWalletTransactions(wallet.id);
+
+
+  const toggleAssetsExpand = (walletId: string) => {
+    setExpandedAssets(expandedAssets === walletId ? null : walletId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -501,32 +518,6 @@ export default function AdminSettingsPage() {
           <Badge variant="destructive" className="bg-red-500/10 text-red-500 hover:bg-red-500/20">
             <AlertCircle className="h-3 w-3 mr-1" />
             Failed
-          </Badge>
-        );
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const getTransactionStatusBadge = (status: string) => {
-    switch (status) {
-      case "Completed":
-      case "Confirmed":
-        return (
-          <Badge variant="default" className="bg-emerald-500/10 text-emerald-500">
-            {status}
-          </Badge>
-        );
-      case "Pending":
-        return (
-          <Badge variant="default" className="bg-amber-500/10 text-amber-500">
-            {status}
-          </Badge>
-        );
-      case "Failed":
-        return (
-          <Badge variant="destructive" className="bg-red-500/10 text-red-500">
-            {status}
           </Badge>
         );
       default:
@@ -576,11 +567,9 @@ export default function AdminSettingsPage() {
           </p>
         </div>
         {hasChanges && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">
-              Unsaved Changes
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">
+            Unsaved Changes
+          </Badge>
         )}
       </div>
 
@@ -608,16 +597,13 @@ export default function AdminSettingsPage() {
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* Profile Info Card */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
                   Profile Information
                 </CardTitle>
-                <CardDescription>
-                  Update your personal information and contact details
-                </CardDescription>
+                <CardDescription>Update your personal information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -627,7 +613,6 @@ export default function AdminSettingsPage() {
                       id="fullName"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Your full name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -636,7 +621,6 @@ export default function AdminSettingsPage() {
                       id="username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Your username"
                     />
                   </div>
                 </div>
@@ -646,15 +630,8 @@ export default function AdminSettingsPage() {
                     <Mail className="h-4 w-4 inline mr-1" />
                     Email Address
                   </Label>
-                  <Input
-                    id="email"
-                    value={profile?.email || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Email cannot be changed. Contact support if you need to update it.
-                  </p>
+                  <Input id="email" value={profile?.email || ""} disabled className="bg-muted" />
+                  <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                 </div>
 
                 <div className="space-y-2">
@@ -673,37 +650,23 @@ export default function AdminSettingsPage() {
                 {hasChanges && (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      You have unsaved changes. Don&apos;t forget to save.
-                    </AlertDescription>
+                    <AlertDescription>You have unsaved changes</AlertDescription>
                   </Alert>
                 )}
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2">
                   <Button onClick={handleSaveProfile} disabled={!hasChanges || saving}>
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
+                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                     Save Changes
                   </Button>
-                  {hasChanges && (
-                    <Button variant="outline" onClick={handleReset}>
-                      Cancel
-                    </Button>
-                  )}
+                  {hasChanges && <Button variant="outline" onClick={handleReset}>Cancel</Button>}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Account Details Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Account Details</CardTitle>
-                <CardDescription>
-                  View your account information
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-center">
@@ -713,9 +676,7 @@ export default function AdminSettingsPage() {
                     </span>
                   </div>
                 </div>
-
                 <Separator />
-
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Account ID</Label>
@@ -723,47 +684,24 @@ export default function AdminSettingsPage() {
                       {profile?.userReferenceId}
                     </code>
                   </div>
-
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Role</Label>
-                    <div>
-                      <Badge variant="default" className="bg-purple-500/10 text-purple-500">
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        Administrator
-                      </Badge>
-                    </div>
+                    <Badge className="bg-purple-500/10 text-purple-500">
+                      <ShieldCheck className="h-3 w-3 mr-1" />
+                      Administrator
+                    </Badge>
                   </div>
-
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Status</Label>
-                    <div>
-                      <Badge
-                        variant={profile?.status === "ACTIVE" ? "default" : "secondary"}
-                        className={
-                          profile?.status === "ACTIVE"
-                            ? "bg-emerald-500/10 text-emerald-500"
-                            : ""
-                        }
-                      >
-                        {profile?.status}
-                      </Badge>
-                    </div>
+                    <Badge className={profile?.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-500" : ""}>
+                      {profile?.status}
+                    </Badge>
                   </div>
-
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Member Since</Label>
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      {profile?.createdAt &&
-                        format(new Date(profile.createdAt), "MMM d, yyyy")}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Last Updated</Label>
-                    <div className="text-sm">
-                      {profile?.updatedAt &&
-                        format(new Date(profile.updatedAt), "MMM d, yyyy HH:mm")}
+                      {profile?.createdAt && format(new Date(profile.createdAt), "MMM d, yyyy")}
                     </div>
                   </div>
                 </div>
@@ -775,16 +713,13 @@ export default function AdminSettingsPage() {
         {/* Security Tab */}
         <TabsContent value="security" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Change Password Card */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Lock className="h-5 w-5" />
                   Change Password
                 </CardTitle>
-                <CardDescription>
-                  Update your password to keep your account secure
-                </CardDescription>
+                <CardDescription>Update your password</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -794,12 +729,9 @@ export default function AdminSettingsPage() {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter your current password"
                   />
                 </div>
-
                 <Separator />
-
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New Password</Label>
                   <Input
@@ -807,10 +739,8 @@ export default function AdminSettingsPage() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min 6 characters)"
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm New Password</Label>
                   <Input
@@ -818,256 +748,195 @@ export default function AdminSettingsPage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your new password"
                   />
                 </div>
-
                 <Button
                   onClick={handleChangePassword}
-                  disabled={
-                    !currentPassword ||
-                    !newPassword ||
-                    !confirmPassword ||
-                    changingPassword
-                  }
+                  disabled={!currentPassword || !newPassword || !confirmPassword || changingPassword}
                   className="w-full"
                 >
-                  {changingPassword ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Lock className="h-4 w-4 mr-2" />
-                  )}
+                  {changingPassword ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Lock className="h-4 w-4 mr-2" />}
                   Change Password
                 </Button>
               </CardContent>
             </Card>
 
-            {/* 2FA Status Card */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5" />
                   Two-Factor Authentication
                 </CardTitle>
-                <CardDescription>
-                  Manage your 2FA settings
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                        profile?.twoFactorEnabled
-                          ? "bg-emerald-500/10 text-emerald-500"
-                          : "bg-slate-500/10 text-slate-500"
-                      }`}
-                    >
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${profile?.twoFactorEnabled ? "bg-emerald-500/10 text-emerald-500" : "bg-slate-500/10 text-slate-500"}`}>
                       <ShieldCheck className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-medium">
-                        {profile?.twoFactorEnabled ? "Enabled" : "Disabled"}
-                      </p>
+                      <p className="font-medium">{profile?.twoFactorEnabled ? "Enabled" : "Disabled"}</p>
                       <p className="text-sm text-muted-foreground">
-                        {profile?.twoFactorEnabled
-                          ? "Your account is protected with 2FA"
-                          : "Enable 2FA for additional security"}
+                        {profile?.twoFactorEnabled ? "Your account is protected" : "Enable 2FA for security"}
                       </p>
                     </div>
                   </div>
-                  <Badge
-                    variant={profile?.twoFactorEnabled ? "default" : "secondary"}
-                    className={
-                      profile?.twoFactorEnabled
-                        ? "bg-emerald-500/10 text-emerald-500"
-                        : ""
-                    }
-                  >
+                  <Badge className={profile?.twoFactorEnabled ? "bg-emerald-500/10 text-emerald-500" : ""}>
                     {profile?.twoFactorEnabled ? "Active" : "Inactive"}
                   </Badge>
                 </div>
-
-                {profile?.twoFactorEnabled && profile?.twoFactorMethod && (
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Method</Label>
-                    <p className="text-sm capitalize">{profile.twoFactorMethod}</p>
-                  </div>
-                )}
-
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Two-factor authentication settings can be managed from your main dashboard
-                    settings.
-                  </AlertDescription>
-                </Alert>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        {/* Wallet Tab */}
+        {/* Wallet Tab - Enhanced */}
         <TabsContent value="wallet" className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Wallets List Card */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Your Wallets</h2>
+              <p className="text-sm text-muted-foreground">Manage your crypto assets and transactions</p>
+            </div>
+            {!hasTrxWallet && (
+              <Button onClick={handleCreateTrxWallet} disabled={creatingWallet}>
+                {creatingWallet ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                Create TRX Wallet
+              </Button>
+            )}
+          </div>
+
+          {walletsLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Loading wallets...</p>
+            </div>
+          ) : wallets.length === 0 ? (
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Wallet className="h-5 w-5" />
-                      Your Wallets
-                    </CardTitle>
-                    <CardDescription>
-                      Manage your TRX and other wallets
-                    </CardDescription>
-                  </div>
-                  {!hasTrxWallet && (
-                    <Button
-                      onClick={handleCreateTrxWallet}
-                      disabled={creatingWallet}
-                      size="sm"
-                    >
-                      {creatingWallet ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Plus className="h-4 w-4 mr-2" />
-                      )}
-                      Create TRX
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {walletsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-8 gap-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Loading wallets...</p>
-                  </div>
-                ) : wallets.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-muted-foreground mb-4">No wallets found</p>
-                    <Button
-                      onClick={handleCreateTrxWallet}
-                      disabled={creatingWallet}
-                    >
-                      {creatingWallet ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Plus className="h-4 w-4 mr-2" />
-                      )}
-                      Create TRX Wallet
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {wallets.map((wallet) => (
-                      <div
-                        key={wallet.id}
-                        className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline">{wallet.network}</Badge>
-                              <Badge variant="secondary">{wallet.currency}</Badge>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <code className="bg-muted px-2 py-1 rounded text-xs">
-                                {wallet.address.slice(0, 12)}...{wallet.address.slice(-8)}
-                              </code>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => copyToClipboard(wallet.address)}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold">
-                              {parseFloat(wallet.balance || "0").toFixed(2)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{wallet.currency}</p>
-                          </div>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Wallet className="h-12 w-12 mb-4 text-muted-foreground/50" />
+                <p className="text-muted-foreground mb-4">No wallets found</p>
+                <Button onClick={handleCreateTrxWallet} disabled={creatingWallet}>
+                  {creatingWallet ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Create TRX Wallet
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6">
+              {wallets.map((wallet) => (
+                <Card key={wallet.id} className="overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <Wallet className="h-6 w-6 text-primary" />
                         </div>
-                        <div className="flex items-center gap-2 mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openTransferDialog(wallet)}
-                          >
-                            <Send className="h-4 w-4 mr-2" />
-                            Send
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openTransactionsDialog(wallet)}
-                            disabled={transactionsLoading}
-                          >
-                            {transactionsLoading && selectedWallet?.id === wallet.id ? (
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                              <ArrowUpRight className="h-4 w-4 mr-2" />
-                            )}
-                            Transactions
-                          </Button>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-lg">{wallet.network}</CardTitle>
+                            <Badge variant="outline">{wallet.currency}</Badge>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                              {wallet.address.slice(0, 16)}...{wallet.address.slice(-8)}
+                            </code>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(wallet.address)}>
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold">{parseFloat(wallet.balance || "0").toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">USDT</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Assets Section */}
+                    <Collapsible open={expandedAssets === wallet.id} onOpenChange={() => toggleAssetsExpand(wallet.id)}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" className="w-full flex items-center justify-between p-2 h-auto">
+                          <div className="flex items-center gap-2">
+                            <Coins className="h-4 w-4" />
+                            <span className="font-medium">Assets ({wallet.totalAssets || 0})</span>
+                          </div>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${expandedAssets === wallet.id ? "rotate-180" : ""}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="space-y-2 pt-2">
+                          {wallet.assets && wallet.assets.length > 0 ? (
+                            wallet.assets.map((asset) => (
+                              <div key={asset.symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold">
+                                    {asset.symbol.slice(0, 2)}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium">{asset.name}</p>
+                                    <p className="text-xs text-muted-foreground">{asset.symbol}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <p className="font-medium">{parseFloat(asset.balance).toFixed(6)}</p>
+                                    <p className="text-xs text-muted-foreground">{asset.symbol}</p>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openTransferDialog(wallet, asset)}
+                                    disabled={parseFloat(asset.balance) <= 0}
+                                  >
+                                    <Send className="h-3 w-3 mr-1" />
+                                    Send
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">No assets found</p>
+                          )}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
-            {/* Wallet Info Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Wallet Information</CardTitle>
-                <CardDescription>
-                  About your admin wallet
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Your admin wallet is used for platform operations and testing.
-                    Keep your wallet credentials secure.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-2">
-                  <h4 className="font-medium">Supported Networks</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">TRON (TRX)</Badge>
-                    <Badge variant="outline">Ethereum</Badge>
-                    <Badge variant="outline">Bitcoin</Badge>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="font-medium">Important Notes</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                    <li>Wallet creation is handled securely via DFNS</li>
-                    <li>Transactions cannot be reversed once confirmed</li>
-                    <li>Always verify recipient addresses before sending</li>
-                    <li>Keep your private keys secure</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refreshWallet(wallet.id)}
+                        disabled={refreshingWallet === wallet.id}
+                      >
+                        {refreshingWallet === wallet.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <RotateCw className="h-4 w-4 mr-2" />
+                        )}
+                        Refresh
+                      </Button>
+                      <Link href={`/admin/wallet/transactions?walletId=${wallet.id}`}>
+                        <Button variant="outline" size="sm">
+                          <List className="h-4 w-4 mr-2" />
+                          Transactions
+                        </Button>
+                      </Link>
+                      {wallet.refreshedAt && (
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          Updated {format(new Date(wallet.refreshedAt), "HH:mm")}
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        {/* Login Activity Tab */}
+        {/* Activity Tab */}
         <TabsContent value="activity" className="space-y-6">
           <Card>
             <CardHeader>
@@ -1077,9 +946,7 @@ export default function AdminSettingsPage() {
                     <LogIn className="h-5 w-5" />
                     Login Activity
                   </CardTitle>
-                  <CardDescription>
-                    View your recent login history and account access
-                  </CardDescription>
+                  <CardDescription>View your recent login history</CardDescription>
                 </div>
                 <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                   <SelectTrigger className="w-full sm:w-[180px]">
@@ -1111,63 +978,31 @@ export default function AdminSettingsPage() {
                       <div className="col-span-3 sm:col-span-2">Status</div>
                       <div className="col-span-4 sm:col-span-3">IP Address</div>
                       <div className="hidden sm:block sm:col-span-3">Location</div>
-                      <div className="hidden sm:block sm:col-span-2">Device</div>
-                      <div className="col-span-5 sm:col-span-2 text-right">Time</div>
+                      <div className="col-span-5 sm:col-span-4 text-right">Time</div>
                     </div>
                     {activities.map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="grid grid-cols-12 gap-4 p-4 border-t items-center text-sm"
-                      >
-                        <div className="col-span-3 sm:col-span-2">
-                          {getStatusBadge(activity.status)}
-                        </div>
-                        <div className="col-span-4 sm:col-span-3 font-mono text-xs">
-                          {activity.ipAddress || "Unknown"}
-                        </div>
-                        <div className="hidden sm:block sm:col-span-3 text-muted-foreground">
-                          {activity.location || "Unknown"}
-                        </div>
-                        <div className="hidden sm:block sm:col-span-2 text-muted-foreground truncate">
-                          {activity.userAgent
-                            ? activity.userAgent.split(" ")[0]
-                            : "Unknown"}
-                        </div>
-                        <div className="col-span-5 sm:col-span-2 text-right text-muted-foreground">
+                      <div key={activity.id} className="grid grid-cols-12 gap-4 p-4 border-t items-center text-sm">
+                        <div className="col-span-3 sm:col-span-2">{getStatusBadge(activity.status)}</div>
+                        <div className="col-span-4 sm:col-span-3 font-mono text-xs">{activity.ipAddress || "Unknown"}</div>
+                        <div className="hidden sm:block sm:col-span-3 text-muted-foreground">{activity.location || "Unknown"}</div>
+                        <div className="col-span-5 sm:col-span-4 text-right text-muted-foreground">
                           {format(new Date(activity.timestamp), "MMM d, HH:mm")}
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Pagination */}
                   {pagination.totalPages > 1 && (
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground">
-                        Showing {(pagination.page - 1) * pagination.limit + 1} -{" "}
-                        {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-                        {pagination.total} activities
+                        Showing {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
                       </p>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePageChange(pagination.page - 1)}
-                          disabled={pagination.page === 1 || activitiesLoading}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handlePageChange(pagination.page - 1)} disabled={pagination.page === 1 || activitiesLoading}>
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        <span className="text-sm">
-                          Page {pagination.page} of {pagination.totalPages}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePageChange(pagination.page + 1)}
-                          disabled={
-                            pagination.page === pagination.totalPages || activitiesLoading
-                          }
-                        >
+                        <span className="text-sm">Page {pagination.page} of {pagination.totalPages}</span>
+                        <Button variant="outline" size="sm" onClick={() => handlePageChange(pagination.page + 1)} disabled={pagination.page === pagination.totalPages || activitiesLoading}>
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1180,26 +1015,23 @@ export default function AdminSettingsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Transfer Dialog */}
+      {/* Transfer Dialog - Multi Asset */}
       <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Send {transferCurrency}</DialogTitle>
+            <DialogTitle>Send {selectedAsset?.symbol}</DialogTitle>
             <DialogDescription>
-              Transfer funds from your {selectedWallet?.network} wallet
+              Transfer {selectedAsset?.name} from your {selectedWallet?.network} wallet
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>From Wallet</Label>
+              <Label>From</Label>
               <div className="p-3 rounded-lg bg-muted text-sm">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{selectedWallet?.network}</span>
-                  <span>{parseFloat(selectedWallet?.balance || "0").toFixed(2)} {selectedWallet?.currency}</span>
+                  <span>{parseFloat(selectedAsset?.balance || "0").toFixed(6)} {selectedAsset?.symbol}</span>
                 </div>
-                <code className="text-xs text-muted-foreground">
-                  {selectedWallet?.address}
-                </code>
               </div>
             </div>
 
@@ -1209,12 +1041,10 @@ export default function AdminSettingsPage() {
                 id="toAddress"
                 value={transferToAddress}
                 onChange={(e) => setTransferToAddress(e.target.value)}
-                placeholder={`Enter ${transferCurrency} address`}
+                placeholder={`Enter ${selectedAsset?.symbol} address`}
               />
-              {transferCurrency === "TRX" && (
-                <p className="text-xs text-muted-foreground">
-                  TRON addresses start with &quot;T&quot;
-                </p>
+              {selectedWallet?.network === "TRON" && (
+                <p className="text-xs text-muted-foreground">TRON addresses start with &quot;T&quot;</p>
               )}
             </div>
 
@@ -1226,9 +1056,19 @@ export default function AdminSettingsPage() {
                 value={transferAmount}
                 onChange={(e) => setTransferAmount(e.target.value)}
                 placeholder="0.00"
-                min="0"
-                step="0.01"
+                step="0.000001"
               />
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Available: {parseFloat(selectedAsset?.balance || "0").toFixed(6)} {selectedAsset?.symbol}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto py-0 px-2"
+                  onClick={() => setTransferAmount(selectedAsset?.balance || "0")}
+                >
+                  Max
+                </Button>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -1239,90 +1079,14 @@ export default function AdminSettingsPage() {
               onClick={handleTransfer}
               disabled={!transferToAddress || !transferAmount || transferring}
             >
-              {transferring ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Send
+              {transferring ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+              Send {selectedAsset?.symbol}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Transactions Dialog */}
-      <Dialog open={transactionsDialogOpen} onOpenChange={setTransactionsDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>Wallet Transactions</DialogTitle>
-            <DialogDescription>
-              Transaction history for {selectedWallet?.network} wallet
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {transactions.length === 0 ? (
-              <div className="text-center py-8">
-                <ArrowUpRight className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">No transactions found</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {transactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="p-4 rounded-lg border bg-card"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                            tx.direction === "incoming"
-                              ? "bg-emerald-500/10 text-emerald-500"
-                              : "bg-blue-500/10 text-blue-500"
-                          }`}
-                        >
-                          {tx.direction === "incoming" ? (
-                            <ArrowDownLeft className="h-5 w-5" />
-                          ) : (
-                            <ArrowUpRight className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium capitalize">
-                            {tx.direction} {tx.currency}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(tx.dateCreated), "MMM d, yyyy HH:mm")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-bold ${
-                          tx.direction === "incoming" ? "text-emerald-500" : ""
-                        }`}>
-                          {tx.direction === "incoming" ? "+" : "-"}
-                          {parseFloat(tx.amount).toFixed(6)} {tx.currency}
-                        </p>
-                        {getTransactionStatusBadge(tx.status)}
-                      </div>
-                    </div>
-                    {tx.hash && (
-                      <div className="mt-3 pt-3 border-t">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Transaction Hash</span>
-                          <code className="bg-muted px-2 py-1 rounded">
-                            {tx.hash.slice(0, 20)}...{tx.hash.slice(-8)}
-                          </code>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }

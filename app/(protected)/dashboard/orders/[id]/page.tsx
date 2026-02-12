@@ -711,7 +711,7 @@ export default function OrderDetailPage() {
                   )}
 
                   <div className="space-y-2">
-                    <Button
+                    {/* <Button
                       size="sm"
                       variant="secondary"
                       className="w-full text-xs"
@@ -722,7 +722,7 @@ export default function OrderDetailPage() {
                       )}
                     >
                       I&apos;ve Sent Funds
-                    </Button>
+                    </Button> */}
 
                     {canPay && (
                       <Button
