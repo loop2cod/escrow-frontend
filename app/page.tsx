@@ -1,38 +1,41 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/auth-store';
-import { Loader2 } from 'lucide-react';
+import ClosingCTA from "@/components/landing-page/sections/ClosingCTA";
+import Features from "@/components/landing-page/sections/Features";
+import Footer from "@/components/landing-page/sections/Footer";
+import Hero from "@/components/landing-page/sections/Hero";
+import HowItWorks from "@/components/landing-page/sections/HowItWorks";
+import Navigation from "@/components/landing-page/sections/Navigation";
+import Pricing from "@/components/landing-page/sections/Pricing";
+import Problem from "@/components/landing-page/sections/Problem";
+import SocialProof from "@/components/landing-page/sections/SocialProof";
+import Solution from "@/components/landing-page/sections/Solution";
+import Templates from "@/components/landing-page/sections/Templates";
 
-export default function Page() {
-  const router = useRouter();
-  const { user, isLoading, loadUser } = useAuthStore();
-
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (user) {
-        // Redirect based on role
-        if (user.role === 'ADMIN') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/dashboard');
-        }
-      } else {
-        router.push('/login');
-      }
-    }
-  }, [user, isLoading, router]);
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="h-12 w-12 text-primary animate-spin" />
-      </div>
+    <div className="relative">
+      {/* Grain Overlay */}
+      <div className="grain-overlay" />
+
+      {/* Navigation */}
+      <Navigation />
+
+      {/* Main Content */}
+      <main className="relative">
+        <Hero />
+        <Problem />
+        <Solution />
+        <Features />
+        <Templates />
+        <HowItWorks />
+        <SocialProof />
+        <Pricing />
+        <ClosingCTA />
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

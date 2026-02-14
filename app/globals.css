@@ -163,6 +163,40 @@
   }
 }
 
+/* Neumorphism Styles */
+.neu-flat {
+  background: #F0F2F5;
+  box-shadow: 8px 8px 16px #d1d5db, -8px -8px 16px #ffffff;
+}
+
+.neu-pressed {
+  background: #F0F2F5;
+  box-shadow: inset 4px 4px 8px #d1d5db, inset -4px -4px 8px #ffffff;
+}
+
+.neu-concave {
+  background: linear-gradient(145deg, #e3e5e8, #ffffff);
+  box-shadow: 8px 8px 16px #d1d5db, -8px -8px 16px #ffffff;
+}
+
+.neu-convex {
+  background: linear-gradient(145deg, #ffffff, #e3e5e8);
+  box-shadow: 8px 8px 16px #d1d5db, -8px -8px 16px #ffffff;
+}
+
+.neu-btn {
+  transition: all 0.3s ease;
+}
+
+.neu-btn:active {
+  box-shadow: inset 4px 4px 8px #d1d5db, inset -4px -4px 8px #ffffff;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Mobile optimizations */
 @media (max-width: 640px) {
   html {
