@@ -1,5 +1,6 @@
 'use client';
 
+import './landing-page.css';
 import ClosingCTA from "@/components/landing-page/sections/ClosingCTA";
 import Features from "@/components/landing-page/sections/Features";
 import Footer from "@/components/landing-page/sections/Footer";
@@ -14,7 +15,7 @@ import Templates from "@/components/landing-page/sections/Templates";
 
 export default function LandingPage() {
   return (
-    <div className="relative">
+    <div className="landing-page-specific relative">
       {/* Grain Overlay */}
       <div className="grain-overlay" />
 

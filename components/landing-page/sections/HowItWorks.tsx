@@ -60,10 +60,9 @@ export default function HowItWorks() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Headline */}
-        <div 
-          className={`text-center mb-16 transition-all duration-600 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
+        <div
+          className={`text-center mb-16 transition-all duration-600 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
         >
           <h2 className="text-[clamp(32px,3.6vw,52px)] font-semibold">
             How it works
@@ -74,9 +73,8 @@ export default function HowItWorks() {
         <div className="relative">
           {/* Connector Line (desktop only) */}
           <div
-            className={`hidden lg:block absolute top-[60px] left-[12.5%] right-[12.5%] h-0.5 bg-[#e5e5e5] origin-left transition-transform duration-1000 ${
-              isInView ? 'scale-x-100' : 'scale-x-0'
-            }`}
+            className={`hidden lg:block absolute top-[30px] left-[12.5%] right-[12.5%] h-0.5 bg-[#e5e5e5] origin-left transition-transform duration-1000 ${isInView ? 'scale-x-100' : 'scale-x-0'
+              }`}
           >
             <div className="absolute inset-0 bg-[#C8FF2E] origin-left" />
           </div>
@@ -84,18 +82,16 @@ export default function HowItWorks() {
           {/* Step Items */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
             {steps.map((step, index) => (
-              <div 
-                key={index} 
-                className={`flex flex-col items-center text-center transition-all duration-600 ${
-                  isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
-                }`}
+              <div
+                key={index}
+                className={`flex flex-col items-center text-center transition-all duration-600 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                  }`}
                 style={{ transitionDelay: `${300 + index * 100}ms` }}
               >
                 {/* Number Circle */}
-                <div 
-                  className={`step-number relative z-10 w-[60px] h-[60px] rounded-full bg-[#0B0C10] flex items-center justify-center mb-6 transition-transform duration-500 ${
-                    isInView ? 'scale-100' : 'scale-90'
-                  }`}
+                <div
+                  className={`step-number relative z-10 w-[60px] h-[60px] rounded-full bg-[#0B0C10] flex items-center justify-center mb-6 transition-transform duration-500 ${isInView ? 'scale-100' : 'scale-90'
+                    }`}
                   style={{ transitionDelay: `${400 + index * 100}ms` }}
                 >
                   <span className="text-[#C8FF2E] font-mono font-medium text-sm">

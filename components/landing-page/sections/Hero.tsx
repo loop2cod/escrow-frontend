@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="section-pinned bg-[#F6F7FA] z-10 mt-20"
+      className="section-pinned bg-secondary z-10"
       style={{ opacity: exitOpacity }}
     >
       <div
@@ -70,7 +70,7 @@ export default function Hero() {
       </div>
 
       <div
-        className={`absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 w-[62vmin] h-[62vmin] ring-outline transition-all duration-800 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        className={`absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 w-[62vmin] h-[62vmin]  transition-all duration-800 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
         style={{
           transitionDelay: '200ms',
@@ -83,9 +83,9 @@ export default function Hero() {
           }`}
         style={{ transitionDelay: '400ms' }}
       >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#C8FF2E] rounded-full" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#C8FF2E] rounded-full" />
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1 h-1 bg-[#0B0C10] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-accent rounded-full" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-accent rounded-full" />
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1 h-1 bg-foreground rounded-full" />
       </div>
 
       <div
@@ -107,12 +107,11 @@ export default function Hero() {
         </h1>
 
         <p
-          className={`text-lg text-[#6B7280] max-w-2xl mx-auto mb-8 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          className={`text-lg text-muted-foreground max-w-2xl mx-auto mb-8 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           style={{ transitionDelay: '500ms' }}
         >
-          Blockchain escrow for freelancers, teams, and businesses. Create
-          agreements, lock funds, and release payment on delivery.
+          A decentralized escrow platform built on blockchain that protects both buyers and sellers with automation, milestone-based payments, and seamless crypto transactions.
         </p>
 
         <div
@@ -126,7 +125,7 @@ export default function Hero() {
           </button>
           <button
             onClick={() => scrollToSection('solution')}
-            className="text-sm font-medium text-[#6B7280] hover:text-[#0B0C10] transition-colors flex items-center gap-1"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           >
             See how it works
           </button>

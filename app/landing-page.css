@@ -1,0 +1,21 @@
+@reference "./globals.css";
+
+/* Landing Page Specific Styles */
+.landing-page-specific {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  overflow-x: hidden;
+}
+
+.landing-page-specific h1,
+.landing-page-specific h2,
+.landing-page-specific h3,
+.landing-page-specific h4,
+.landing-page-specific h5,
+.landing-page-specific h6 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
