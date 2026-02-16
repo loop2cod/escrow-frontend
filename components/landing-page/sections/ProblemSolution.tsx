@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 // Lazy load Threads component to reduce initial bundle and only load when needed
 const Threads = dynamic(() => import('@/components/Threads'), {
@@ -20,6 +22,8 @@ export default function ProblemSolution() {
   const [problemProgress, setProblemProgress] = useState(0);
   const [solutionProgress, setSolutionProgress] = useState(0);
   const tickingRef = useRef(false);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     // IntersectionObserver for sections
@@ -99,6 +103,19 @@ export default function ProblemSolution() {
   const scrollToSolution = () => {
     if (solutionRef.current) {
       solutionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isAuthenticated && user) {
+      // Redirect based on role
+      if (user.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
+    } else {
+      router.push('/login');
     }
   };
 
@@ -216,7 +233,7 @@ export default function ProblemSolution() {
             when both parties confirm.
           </p>
 
-          <button className="btn-primary flex items-center gap-2">
+          <button onClick={handleGetStarted} className="btn-primary flex items-center gap-2">
             Create an Agreement
             <ArrowRight size={18} />
           </button>

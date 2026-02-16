@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 // Lazy load Orb component to reduce initial bundle
 const Orb = dynamic(() => import('../../Orb'), {
@@ -14,6 +16,8 @@ export default function Hero() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const tickingRef = useRef(false);
   const isInViewRef = useRef(true);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -65,6 +69,19 @@ export default function Hero() {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isAuthenticated && user) {
+      // Redirect based on role
+      if (user.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
+    } else {
+      router.push('/login');
     }
   };
 
@@ -136,12 +153,15 @@ export default function Hero() {
         <div
           className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-5 max-w-xs sm:max-w-none mx-auto transition-all duration-500`}
         >
-          <button className="z-50 cursor-pointer btn-primary flex items-center justify-center gap-2 w-full sm:w-auto sm:min-w-[180px] text-sm sm:text-base">
+          <button
+            onClick={handleGetStarted}
+            className="z-50 cursor-pointer btn-primary flex items-center justify-center gap-2 w-full sm:w-auto sm:min-w-[180px] text-sm sm:text-base"
+          >
             Get Started
             <ArrowRight size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
           <button
-            onClick={() => scrollToSection('solution')}
+            onClick={() => scrollToSection('how-it-works')}
             className="z-50 cursor-pointer text-xs sm:text-base font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1 w-full sm:w-auto py-2.5 sm:py-0"
           >
             See how it works

@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +22,19 @@ export default function Navigation() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setIsMobileMenuOpen(false);
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isAuthenticated && user) {
+      // Redirect based on role
+      if (user.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
+    } else {
+      router.push('/login');
     }
   };
 
@@ -60,7 +77,7 @@ export default function Navigation() {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <button className="btn-primary text-sm py-3 px-6">
+            <button onClick={handleGetStarted} className="btn-primary text-sm py-3 px-6">
               Get Started
             </button>
           </div>
@@ -87,7 +104,7 @@ export default function Navigation() {
               {item.label}
             </button>
           ))}
-          <button className="btn-primary mt-4">Get Started</button>
+          <button onClick={handleGetStarted} className="btn-primary mt-4">Get Started</button>
         </div>
       )}
     </>

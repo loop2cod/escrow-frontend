@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 const features = [
   'Account Creation',
@@ -14,6 +16,8 @@ const features = [
 export default function Pricing() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isInView, setIsInView] = useState(false);
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -31,6 +35,19 @@ export default function Pricing() {
 
     return () => observer.disconnect();
   }, []);
+
+  const handleGetStarted = () => {
+    if (isAuthenticated && user) {
+      // Redirect based on role
+      if (user.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <section
@@ -85,7 +102,7 @@ export default function Pricing() {
                 hidden charges.
               </p>
 
-              <button className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto">
+              <button onClick={handleGetStarted} className="btn-primary flex items-center justify-center gap-2 w-full md:w-auto">
                 Get Started Free
                 <ArrowRight size={18} />
               </button>
