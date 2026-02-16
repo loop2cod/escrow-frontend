@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowRight, AlertTriangle, User, Loader2, XCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth-store';
@@ -17,89 +17,27 @@ export default function ProblemSolution() {
   const problemRef = useRef<HTMLDivElement>(null);
   const solutionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [problemInView, setProblemInView] = useState(false);
-  const [solutionInView, setSolutionInView] = useState(false);
-  const [threadsInView, setThreadsInView] = useState(false);
-  const [problemProgress, setProblemProgress] = useState(0);
-  const [solutionProgress, setSolutionProgress] = useState(0);
-  const tickingRef = useRef(false);
+
+  const problemInView = useInView(problemRef, { amount: 0.3, once: false });
+  const solutionInView = useInView(solutionRef, { amount: 0.3, once: false });
+  const threadsInView = useInView(containerRef, { margin: "200px 0px 0px 0px" });
+
+  const { scrollYProgress: problemScrollY } = useScroll({
+    target: problemRef,
+    offset: ["start end", "end start"]
+  });
+
+  const { scrollYProgress: solutionScrollY } = useScroll({
+    target: solutionRef,
+    offset: ["start end", "end start"]
+  });
+
+  const problemExitOpacity = useTransform(problemScrollY, [0.4, 0.6], [1, 0]);
+  const solutionExitOpacity = useTransform(solutionScrollY, [0.4, 0.6], [1, 0]);
+  const solutionTranslateX = useTransform(solutionScrollY, [0, 0.5], [0, -100]);
+
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-
-  useEffect(() => {
-    // IntersectionObserver for sections
-    const problemObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setProblemInView(true);
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    const solutionObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setSolutionInView(true);
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    // Observer for Threads background - only render when visible
-    const threadsObserver = new IntersectionObserver(
-      ([entry]) => {
-        setThreadsInView(entry.isIntersecting);
-      },
-      { threshold: 0, rootMargin: '200px' }
-    );
-
-    if (problemRef.current) {
-      problemObserver.observe(problemRef.current);
-    }
-
-    if (solutionRef.current) {
-      solutionObserver.observe(solutionRef.current);
-    }
-
-    if (containerRef.current) {
-      threadsObserver.observe(containerRef.current);
-    }
-
-    // Throttled scroll handler using requestAnimationFrame
-    const handleScroll = () => {
-      if (tickingRef.current) return;
-
-      tickingRef.current = true;
-      requestAnimationFrame(() => {
-        if (problemRef.current) {
-          const rect = problemRef.current.getBoundingClientRect();
-          const scrollPast = -rect.top;
-          const sectionHeight = rect.height;
-          const progress = Math.max(0, Math.min(1, scrollPast / (sectionHeight * 0.4)));
-          setProblemProgress(progress);
-        }
-
-        if (solutionRef.current) {
-          const rect = solutionRef.current.getBoundingClientRect();
-          const sectionHeight = rect.height;
-          const scrollPast = -rect.top;
-          const progress = Math.max(0, Math.min(1, scrollPast / (sectionHeight * 0.4)));
-          setSolutionProgress(progress);
-        }
-        tickingRef.current = false;
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      problemObserver.disconnect();
-      solutionObserver.disconnect();
-      threadsObserver.disconnect();
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
 
   const scrollToSolution = () => {
     if (solutionRef.current) {
@@ -120,8 +58,7 @@ export default function ProblemSolution() {
     }
   };
 
-  const problemExitOpacity = Math.max(0, 1 - problemProgress * 1.5);
-  const solutionExitOpacity = Math.max(0, 1 - solutionProgress * 1.5);
+
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -155,7 +92,7 @@ export default function ProblemSolution() {
             <ProblemVisual inView={problemInView} />
           </div>
 
-          <div
+          <motion.div
             className={`w-full lg:w-[45%] max-w-xl transition-all duration-1000 ${problemInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-[40px]'
               }`}
             style={{
@@ -189,7 +126,7 @@ export default function ProblemSolution() {
                 className="group-hover:translate-x-1 transition-transform"
               />
             </button>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -214,12 +151,12 @@ export default function ProblemSolution() {
         </div>
 
         {/* Left Text Block */}
-        <div
+        <motion.div
           className={`w-full md:w-[50vw] lg:w-[36vw] max-w-xl transition-all duration-1000 ${solutionInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-[40vw]'
             }`}
           style={{
             transitionDelay: '200ms',
-            transform: solutionInView ? `translateX(${-solutionProgress * 100}px)` : 'translateX(-40vw)',
+            x: solutionTranslateX,
             opacity: solutionExitOpacity,
           }}
         >
@@ -240,7 +177,7 @@ export default function ProblemSolution() {
             Create an Agreement
             <ArrowRight size={18} />
           </button>
-        </div>
+        </motion.div>
       </section>
     </div>
   );

@@ -21,7 +21,7 @@ export default function Footer() {
                 SecureEscrow
               </span>
             </div>
-            <p className="text-white/60 mb-6 max-w-sm">
+            <p className="text-gray-400 mb-6 max-w-sm">
               Blockchain-powered escrow for freelancers, teams, and businesses.
               Secure transactions, verified payments, zero trust issues.
             </p>
@@ -36,7 +36,7 @@ export default function Footer() {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full bg-white/10 border border-white/20 rounded-full py-2.5 pl-10 pr-4 text-sm placeholder:text-white/40 focus:outline-none focus:border-[#C8FF2E]"
+                  className="w-full bg-white/10 border border-white/20 rounded-full py-2.5 pl-10 pr-4 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8FF2E]"
                 />
               </div>
               <button className="btn-primary py-2.5 px-5 text-sm">
@@ -48,13 +48,13 @@ export default function Footer() {
           {/* Links Columns */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h4 className="font-semibold mb-4">{category}</h4>
+              <h3 className="font-semibold mb-4">{category}</h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link}>
                     <a
                       href="#"
-                      className="text-sm text-white/60 hover:text-[#C8FF2E] transition-colors"
+                      className="text-sm text-gray-300 hover:text-[#C8FF2E] transition-colors"
                     >
                       {link}
                     </a>
@@ -65,9 +65,8 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-gray-400">
             © 2026 SecureEscrow. All rights reserved.
           </p>
 

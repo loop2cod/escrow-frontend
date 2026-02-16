@@ -25,8 +25,8 @@ uniform vec2 uMouse;
 
 #define PI 3.1415926538
 
-// Reduced from 40 to 25 for better performance
-const int u_line_count = 25;
+// Reduced from 25 to 15 for better performance
+const int u_line_count = 15;
 const float u_line_width = 7.0;
 const float u_line_blur = 10.0;
 
@@ -144,7 +144,7 @@ const Threads = ({ color = [1, 1, 1], amplitude = 1, distance = 0, enableMouseIn
     program.uniforms.iTime.value = t * 0.001;
 
     renderer.render({ scene: mesh });
-    animationFrameId.current = requestAnimationFrame((time) => 
+    animationFrameId.current = requestAnimationFrame((time) =>
       update(time, program, renderer, mesh, currentMouse, targetMouse)
     );
   }, [enableMouseInteraction]);
@@ -180,8 +180,8 @@ const Threads = ({ color = [1, 1, 1], amplitude = 1, distance = 0, enableMouseIn
 
     function resize() {
       const { clientWidth, clientHeight } = container;
-      // Cap DPR at 1.5 for performance
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      // Cap DPR at 1.0 for better performance
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.0);
       const width = Math.floor(clientWidth * dpr);
       const height = Math.floor(clientHeight * dpr);
       renderer.setSize(width, height);
@@ -215,7 +215,7 @@ const Threads = ({ color = [1, 1, 1], amplitude = 1, distance = 0, enableMouseIn
         isVisibleRef.current = entry.isIntersecting;
         if (entry.isIntersecting && isPausedRef.current) {
           isPausedRef.current = false;
-          animationFrameId.current = requestAnimationFrame((t) => 
+          animationFrameId.current = requestAnimationFrame((t) =>
             update(t, program, renderer, mesh, currentMouse, targetMouse)
           );
         } else if (!entry.isIntersecting && !isPausedRef.current) {
@@ -231,7 +231,7 @@ const Threads = ({ color = [1, 1, 1], amplitude = 1, distance = 0, enableMouseIn
     observer.observe(container);
 
     // Start animation
-    animationFrameId.current = requestAnimationFrame((t) => 
+    animationFrameId.current = requestAnimationFrame((t) =>
       update(t, program, renderer, mesh, currentMouse, targetMouse)
     );
 
