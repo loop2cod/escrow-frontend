@@ -76,18 +76,21 @@ export default function Footer() {
             <a
               href="#"
               className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#C8FF2E] hover:text-[#0B0C10] transition-all"
+              aria-label="Twitter"
             >
               <Twitter size={18} />
             </a>
             <a
               href="#"
               className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#C8FF2E] hover:text-[#0B0C10] transition-all"
+              aria-label="LinkedIn"
             >
               <Linkedin size={18} />
             </a>
             <a
               href="#"
               className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#C8FF2E] hover:text-[#0B0C10] transition-all"
+              aria-label="GitHub"
             >
               <Github size={18} />
             </a>

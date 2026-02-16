@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -168,7 +167,7 @@
 }
 
 .font-inter {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter);
 }
 
 .logo {
@@ -289,7 +288,7 @@
 
 @layer components {
   .font-mono {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-ibm-plex-mono);
   }
 
   .text-gradient {
@@ -347,7 +346,7 @@
   }
 
   .micro-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-ibm-plex-mono);
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.14em;

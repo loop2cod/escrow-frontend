@@ -254,7 +254,7 @@ function ProblemVisual({ inView }: { inView: boolean }) {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
         transition={{ duration: 1 }}
-        className="absolute inset-0 bg-gradient-to-tr from-red-500/5 via-transparent to-orange-500/5 rounded-full blur-3xl opacity-50"
+        className="absolute inset-0 bg-linear-to-tr from-red-500/5 via-transparent to-orange-500/5 rounded-full blur-3xl opacity-50"
       />
 
       {/* Main Card - Neumorphic Style */}

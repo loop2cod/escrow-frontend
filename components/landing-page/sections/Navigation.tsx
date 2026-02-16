@@ -69,6 +69,7 @@ export default function Navigation() {
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
                 className="text-sm font-medium text-[#6B7280] hover:text-[#0B0C10] transition-colors"
+                aria-label={`Scroll to ${item.label} section`}
               >
                 {item.label}
               </button>
@@ -77,7 +78,7 @@ export default function Navigation() {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <button onClick={handleGetStarted} className="btn-primary text-sm py-3 px-6">
+            <button onClick={handleGetStarted} className="btn-primary text-sm py-3 px-6" aria-label="Get Started">
               Get Started
             </button>
           </div>
@@ -86,6 +87,7 @@ export default function Navigation() {
           <button
             className="md:hidden p-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
