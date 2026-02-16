@@ -89,11 +89,10 @@ export default function WhyChoose() {
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Headline */}
         <div
-          className={`text-center mb-16 transition-all duration-600 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
+          className={`text-center mb-16 transition-all duration-600 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
         >
-          <span className="micro-label block mb-4">Why Choose SecureEscrow</span>
+          <span className="micro-label block mb-4">Why SecureEscrow</span>
           <h2 className="text-[clamp(32px,3.6vw,52px)] font-semibold mb-4">
             Built for trust, designed for speed
           </h2>
@@ -107,13 +106,12 @@ export default function WhyChoose() {
           {reasons.map((reason, index) => (
             <div
               key={index}
-              className={`relative bg-white rounded-2xl p-6 border border-[#e5e5e5] hover:border-[#C8FF2E] hover:shadow-xl transition-all duration-300 overflow-hidden group ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
+              className={`relative bg-white rounded-2xl p-6 border border-[#e5e5e5] hover:border-[#C8FF2E] hover:shadow-xl transition-all duration-300 overflow-hidden group ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                }`}
               style={{ transitionDelay: `${200 + index * 100}ms` }}
             >
               {/* Gradient background on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${reason.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${reason.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`} />
 
               <div className="relative z-10">
                 {/* Icon */}
@@ -136,43 +134,6 @@ export default function WhyChoose() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Trust Indicators */}
-        <div
-          className={`mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 transition-all duration-600 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}
-          style={{ transitionDelay: '600ms' }}
-        >
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#F6F7FA] flex items-center justify-center mx-auto mb-3">
-              <Lock size={20} className="text-[#0B0C10]" />
-            </div>
-            <p className="text-sm font-medium">Non-custodial</p>
-            <p className="text-xs text-[#6B7280]">You control your keys</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#F6F7FA] flex items-center justify-center mx-auto mb-3">
-              <TrendingUp size={20} className="text-[#0B0C10]" />
-            </div>
-            <p className="text-sm font-medium">Transparent</p>
-            <p className="text-xs text-[#6B7280]">On-chain verification</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#F6F7FA] flex items-center justify-center mx-auto mb-3">
-              <Shield size={20} className="text-[#0B0C10]" />
-            </div>
-            <p className="text-sm font-medium">Insured</p>
-            <p className="text-xs text-[#6B7280]">Platform coverage</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#F6F7FA] flex items-center justify-center mx-auto mb-3">
-              <CheckCircle size={20} className="text-[#0B0C10]" />
-            </div>
-            <p className="text-sm font-medium">Compliant</p>
-            <p className="text-xs text-[#6B7280]">KYC/AML ready</p>
-          </div>
         </div>
       </div>
     </section>

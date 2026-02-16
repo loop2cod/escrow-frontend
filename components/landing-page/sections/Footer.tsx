@@ -1,10 +1,9 @@
 import { Mail, Twitter, Linkedin, Github } from 'lucide-react';
 
 const footerLinks = {
-  Product: ['Features', 'Templates', 'Pricing', 'Integrations'],
-  Company: ['About', 'Blog', 'Careers', 'Contact'],
-  Resources: ['Documentation', 'API Reference', 'Status', 'Support'],
-  Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'GDPR'],
+  Product: ['Features', 'Templates', 'Pricing'],
+  Company: ['About', 'Case Studies', 'Contact'],
+  Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'],
 };
 
 export default function Footer() {
