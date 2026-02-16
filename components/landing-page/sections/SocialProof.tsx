@@ -112,15 +112,15 @@ export default function SocialProof() {
               "{testimonials[currentTestimonial].quote}"
             </blockquote>
 
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-end">
+              {/* <div>
                 <p className="font-semibold">
                   {testimonials[currentTestimonial].author}
                 </p>
                 <p className="text-sm text-[#6B7280]">
                   {testimonials[currentTestimonial].role}
                 </p>
-              </div>
+              </div> */}
 
               {/* Navigation */}
               <div className="flex gap-2">

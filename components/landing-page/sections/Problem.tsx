@@ -53,45 +53,9 @@ export default function Problem() {
       id="problem"
       className="section-pinned bg-[#F6F7FA] z-20"
     >
-      <div className="absolute inset-0 grid-background" />
 
-      <div className="absolute inset-0 pointer-events-none">
-        <div 
-          className={`accent-dot absolute left-[44vw] top-[22vh] w-3 h-3 transition-all duration-500 ${
-            isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
-          }`}
-          style={{ transitionDelay: '400ms' }}
-        />
-        <div 
-          className={`accent-dot absolute right-[10vw] top-[74vh] w-2.5 h-2.5 transition-all duration-500 ${
-            isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
-          }`}
-          style={{ transitionDelay: '500ms' }}
-        />
-      </div>
 
-      <div
-        className={`absolute left-[18vw] top-1/2 -translate-y-1/2 w-[56vmin] h-[56vmin] ring-outline flex items-center justify-center transition-all duration-1000 ${
-          isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-[60vw]'
-        }`}
-        style={{ 
-          transform: `translateY(-50%) translateX(${exitX}px)`,
-          opacity: exitOpacity,
-        }}
-      >
-        <div
-          className={`w-[48vmin] h-[48vmin] rounded-full overflow-hidden transition-all duration-1000 ${
-            isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-85'
-          }`}
-          style={{ transitionDelay: '100ms' }}
-        >
-          <img
-            src="/problem-photo.jpg"
-            alt="Professional woman concerned about payment"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
+  
 
       <div
         className={`absolute left-[58vw] top-1/2 -translate-y-1/2 w-[34vw] max-w-xl transition-all duration-1000 ${

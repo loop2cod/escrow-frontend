@@ -113,27 +113,6 @@ export default function Pricing() {
             </div>
           </div>
         </div>
-
-        {/* Trust Badges */}
-        <div 
-          className={`flex flex-wrap items-center justify-center gap-8 mt-12 opacity-60 transition-all duration-600 ${
-            isInView ? 'opacity-60 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}
-          style={{ transitionDelay: '400ms' }}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#e5e5e5]" />
-            <span className="text-sm font-medium">Non-custodial</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#e5e5e5]" />
-            <span className="text-sm font-medium">Audited Contracts</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-[#e5e5e5]" />
-            <span className="text-sm font-medium">24/7 Support</span>
-          </div>
-        </div>
       </div>
     </section>
   );

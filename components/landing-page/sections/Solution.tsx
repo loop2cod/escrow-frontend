@@ -47,8 +47,6 @@ export default function Solution() {
       id="solution"
       className="section-pinned bg-[#F6F7FA] z-30"
     >
-      {/* Grid Background */}
-      <div className="absolute inset-0 grid-background" />
 
       {/* Accent Dots */}
       <div className="absolute inset-0 pointer-events-none">
@@ -94,30 +92,6 @@ export default function Solution() {
           Create an Agreement
           <ArrowRight size={18} />
         </button>
-      </div>
-
-      {/* Right Ring with Image */}
-      <div
-        className={`absolute right-[12vw] top-1/2 -translate-y-1/2 w-[56vmin] h-[56vmin] ring-outline flex items-center justify-center transition-all duration-1000 ${
-          isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-[60vw]'
-        }`}
-        style={{ 
-          transform: `translateY(-50%) translateX(${exitX}px)`,
-          opacity: exitOpacity,
-        }}
-      >
-        <div
-          className={`w-[48vmin] h-[48vmin] rounded-full overflow-hidden transition-all duration-1000 ${
-            isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-85'
-          }`}
-          style={{ transitionDelay: '100ms' }}
-        >
-          <img
-            src="/solution-photo.jpg"
-            alt="Professional man confident in secure payment"
-            className="w-full h-full object-cover"
-          />
-        </div>
       </div>
     </section>
   );

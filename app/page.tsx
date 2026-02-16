@@ -8,10 +8,10 @@ import Hero from "@/components/landing-page/sections/Hero";
 import HowItWorks from "@/components/landing-page/sections/HowItWorks";
 import Navigation from "@/components/landing-page/sections/Navigation";
 import Pricing from "@/components/landing-page/sections/Pricing";
-import Problem from "@/components/landing-page/sections/Problem";
+import ProblemSolution from "@/components/landing-page/sections/ProblemSolution";
 import SocialProof from "@/components/landing-page/sections/SocialProof";
-import Solution from "@/components/landing-page/sections/Solution";
 import Templates from "@/components/landing-page/sections/Templates";
+import WhyChoose from '@/components/landing-page/sections/WhyChoose';
 
 export default function LandingPage() {
   return (
@@ -25,10 +25,10 @@ export default function LandingPage() {
       {/* Main Content */}
       <main className="relative">
         <Hero />
-        <Problem />
-        <Solution />
+        <ProblemSolution />
         <Features />
         <Templates />
+        <WhyChoose />
         <HowItWorks />
         <SocialProof />
         <Pricing />
