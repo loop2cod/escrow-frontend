@@ -68,6 +68,7 @@ interface UserData {
   id: string;
   name: string;
   email: string;
+  image?: string;
 }
 
 interface DashboardData {
@@ -428,8 +429,16 @@ function UserProfileCard({ user }: { user?: UserData }) {
     <Card className="p-3 border-0 shadow-md bg-gradient-to-r from-primary/5 via-card to-muted/10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 shrink-0">
-            <User className="h-5 w-5 text-primary" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 shrink-0 overflow-hidden">
+            {user.image ? (
+              <img
+                src={user.image}
+                alt={user.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <User className="h-5 w-5 text-primary" />
+            )}
           </div>
           <div>
             <p className="font-semibold text-sm">{user.name}</p>

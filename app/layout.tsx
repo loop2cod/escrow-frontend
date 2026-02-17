@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AccessibilityProvider } from "@/components/accessibility-provider";
+import { GoogleAuthProvider } from "@/components/providers/GoogleAuthProvider";
 
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -54,10 +55,12 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AccessibilityProvider>
-            <AuthProvider>
-              {children}
-              <Toaster />
-            </AuthProvider>
+            <GoogleAuthProvider>
+              <AuthProvider>
+                {children}
+                <Toaster />
+              </AuthProvider>
+            </GoogleAuthProvider>
           </AccessibilityProvider>
         </ThemeProvider>
       </body>

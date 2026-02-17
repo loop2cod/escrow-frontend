@@ -3,7 +3,11 @@ import { Mail, Twitter, Linkedin, Github } from 'lucide-react';
 const footerLinks = {
   Product: ['Features', 'Templates', 'Pricing'],
   Company: ['About', 'Case Studies', 'Contact'],
-  Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'],
+  Legal: [
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+    { label: 'Terms of Service', href: '/terms-of-service' },
+    { label: 'Cookie Policy', href: '/cookie-policy' },
+  ],
 };
 
 export default function Footer() {
@@ -50,13 +54,13 @@ export default function Footer() {
             <div key={category}>
               <h3 className="font-semibold mb-4">{category}</h3>
               <ul className="space-y-3">
-                {links.map((link) => (
-                  <li key={link}>
+                {links.map((link: any) => (
+                  <li key={link.label || link}>
                     <a
-                      href="#"
+                      href={typeof link === 'string' ? '#' : link.href}
                       className="text-sm text-gray-300 hover:text-[#C8FF2E] transition-colors"
                     >
-                      {link}
+                      {typeof link === 'string' ? link : link.label}
                     </a>
                   </li>
                 ))}

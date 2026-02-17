@@ -11,6 +11,7 @@ export interface User {
   name: string;
   role: UserRole;
   userReferenceId?: string;
+  image?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,6 +66,7 @@ export interface AuthState {
   loadUser: () => Promise<void>;
   clearError: () => void;
   setUser: (user: any | null) => void;
+  loginWithGoogle: (credential: string) => Promise<void>;
 }
 
 // ============================================
@@ -104,7 +106,7 @@ export interface Wallet {
 // CONTRACT TYPES
 // ============================================
 
-export type ContractStatus = 
+export type ContractStatus =
   | 'DRAFT'
   | 'PENDING_REVIEW'
   | 'PENDING_ACCEPTANCE'
@@ -438,7 +440,7 @@ export interface ChatState {
   error: string | null;
   unreadCount: number;
   typingUsers: string[];
-  
+
   // Actions
   fetchMessages: (contractId: string) => Promise<void>;
   sendMessage: (contractId: string, content: string) => Promise<void>;
@@ -460,7 +462,7 @@ export interface AdminChatState {
     todayMessages: number;
     activeChats: number;
   };
-  
+
   // Actions
   fetchAllChats: (params?: { status?: string; limit?: number }) => Promise<void>;
   fetchChatStats: () => Promise<void>;

@@ -1,3 +1,4 @@
+'use client'
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -55,7 +56,9 @@ export default function Navigation() {
       >
         <div className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div onClick={() => {
+            router.push('/');
+          }} className="cursor-pointer flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-[#0B0C10] flex items-center justify-center">
               <div className="w-3 h-3 rounded-full bg-[#C8FF2E]" />
             </div>

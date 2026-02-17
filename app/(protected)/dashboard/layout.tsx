@@ -156,8 +156,8 @@ export default function DashboardLayout({
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                         <LayoutDashboard className="size-5 text-primary-foreground" />
                       </div>
-                      <span className="text-lg font-bold tracking-tight text-sidebar-foreground">
-                        Escrow
+                      <span className="font-semibold text-lg tracking-tight text-sidebar-foreground">
+                        SecureEscrow
                       </span>
                     </Link>
                   </div>

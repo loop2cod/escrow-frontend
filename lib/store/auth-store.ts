@@ -204,4 +204,57 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user: User | null) => {
     set({ user, isAuthenticated: !!user });
   },
+
+  // Google Login function
+  loginWithGoogle: async (credential: string) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await apiClient.post<AuthResponse>(
+        '/auth/google',
+        { credential }
+      );
+
+      const { user, accessToken, refreshToken } = response.data.data;
+
+      // Store tokens
+      Cookies.set('accessToken', accessToken, {
+        expires: 1 / 48,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+
+      Cookies.set('refreshToken', refreshToken, {
+        expires: 7,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+
+      Cookies.set('token', accessToken, {
+        expires: 1 / 48,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
+
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      const errorMessage =
+        axiosError.response?.data?.message || 'Google login failed.';
+
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: errorMessage,
+      });
+
+      throw error;
+    }
+  },
 }));
