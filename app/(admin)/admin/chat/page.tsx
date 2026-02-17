@@ -135,7 +135,7 @@ export default function AdminChatPage() {
 
     // Create socket if needed
     if (!globalSocket) {
-      const apiUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
+      const apiUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://escrow-backend-production-8b93.up.railway.app';
       globalSocket = io(apiUrl, {
         auth: { token },
         transports: ['polling', 'websocket'],

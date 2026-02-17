@@ -145,23 +145,21 @@ export default function AdminLayout({
 
             {/* Mobile Sidebar Drawer */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetContent 
-                side="left" 
+              <SheetContent
+                side="left"
                 className="w-80 p-3 bg-transparent border-none shadow-none"
               >
                 <div className="h-full flex flex-col gap-3 w-full">
                   {/* Mobile Top Bar - Lifted */}
                   <div className="flex items-center justify-between rounded-2xl bg-sidebar px-4 py-3">
                     <Link href="/admin/dashboard" className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                        <Shield className="size-5 text-primary-foreground" />
+                      <div className="w-8 h-8 rounded-full bg-[#0B0C10] dark:bg-[#C8FF2E] flex items-center justify-center">
+                        <div className="w-3 h-3 rounded-full bg-[#C8FF2E] dark:bg-[#0B0C10]" />
                       </div>
-                      <span className="text-lg font-bold tracking-tight text-sidebar-foreground">
-                        Escrow
-                      </span>
+                      <span className="font-semibold text-lg tracking-tight">SecureEscrow</span>
                     </Link>
                   </div>
-                  
+
                   {/* Sidebar Content - Lifted */}
                   <div className="flex-1 rounded-2xl bg-sidebar overflow-hidden w-full">
                     <SidebarProvider>

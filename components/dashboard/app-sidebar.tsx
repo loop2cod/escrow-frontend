@@ -155,8 +155,8 @@ export function AppSidebar() {
       {/* Logo Header */}
       <SidebarHeader className="p-4 hidden lg:block">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#0B0C10] flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-[#C8FF2E]" />
+          <div className="w-8 h-8 rounded-full bg-[#0B0C10] dark:bg-[#C8FF2E] flex items-center justify-center">
+            <div className="w-3 h-3 rounded-full bg-[#C8FF2E] dark:bg-[#0B0C10]" />
           </div>
           <span className="font-semibold text-lg tracking-tight text-sidebar-foreground">
             SecureEscrow

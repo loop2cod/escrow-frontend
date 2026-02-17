@@ -59,8 +59,8 @@ export default function Navigation() {
           <div onClick={() => {
             router.push('/');
           }} className="cursor-pointer flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#0B0C10] flex items-center justify-center">
-              <div className="w-3 h-3 rounded-full bg-[#C8FF2E]" />
+            <div className="w-8 h-8 rounded-full bg-[#0B0C10] dark:bg-[#C8FF2E] flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-[#C8FF2E] dark:bg-[#0B0C10]" />
             </div>
             <span className="font-semibold text-lg tracking-tight">SecureEscrow</span>
           </div>
@@ -109,7 +109,7 @@ export default function Navigation() {
               {item.label}
             </button>
           ))}
-          <button onClick={handleGetStarted} className="btn-primary mt-4">Get Started</button>
+          <button onClick={handleGetStarted} className="cursor-pointer btn-primary mt-4">Get Started</button>
         </div>
       )}
     </>

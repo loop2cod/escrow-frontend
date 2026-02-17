@@ -48,7 +48,7 @@ export function useSocket(options: UseSocketOptions = {}) {
     }
 
     // Initialize socket with polling first for better compatibility
-    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://escrow-backend-production-8b93.up.railway.app').replace(/\/$/, '');
     const socket = io(apiUrl, {
       auth: { token },
       transports: ['polling', 'websocket'],

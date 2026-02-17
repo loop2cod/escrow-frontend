@@ -153,8 +153,8 @@ export default function DashboardLayout({
                   {/* Mobile Top Bar - Lifted */}
                   <div className="flex items-center justify-between rounded-2xl bg-sidebar px-4 py-3">
                     <Link href="/dashboard" className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                        <LayoutDashboard className="size-5 text-primary-foreground" />
+                      <div className="w-8 h-8 rounded-full bg-[#0B0C10] dark:bg-[#C8FF2E] flex items-center justify-center">
+                        <div className="w-3 h-3 rounded-full bg-[#C8FF2E] dark:bg-[#0B0C10]" />
                       </div>
                       <span className="font-semibold text-lg tracking-tight text-sidebar-foreground">
                         SecureEscrow
