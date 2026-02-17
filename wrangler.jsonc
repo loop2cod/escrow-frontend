@@ -20,5 +20,10 @@
 			"binding": "nextjs_cache",
 			"remote": true
 		}
-	]
+	],
+	"vars": {
+		"NEXT_PUBLIC_API_URL": "https://escrow-backend-production-8b93.up.railway.app/api",
+		"NEXT_PUBLIC_SOCKET_URL": "https://escrow-backend-production-8b93.up.railway.app",
+		"NEXT_PUBLIC_GOOGLE_CLIENT_ID": "1053757160479-3iaa09go6kiri9kjmecb65vmb8a5h3v1.apps.googleusercontent.com"
+	}
 }
