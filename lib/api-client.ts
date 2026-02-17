@@ -81,7 +81,16 @@ apiClient.interceptors.response.use(
         Cookies.remove('accessToken');
         Cookies.remove('refreshToken');
         Cookies.remove('token'); // Remove legacy token if exists
-        window.location.href = '/login';
+
+        const publicRoutes = ['/login', '/register', '/verify-email', '/privacy-policy', '/terms-of-service', '/cookie-policy', '/'];
+        const isPublicRoute = publicRoutes.some(route => {
+          if (route === '/') return window.location.pathname === '/';
+          return window.location.pathname.startsWith(route);
+        });
+
+        if (!isPublicRoute) {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 
@@ -127,7 +136,16 @@ apiClient.interceptors.response.use(
         Cookies.remove('accessToken');
         Cookies.remove('refreshToken');
         Cookies.remove('token');
-        window.location.href = '/login';
+
+        const publicRoutes = ['/login', '/register', '/verify-email', '/privacy-policy', '/terms-of-service', '/cookie-policy', '/'];
+        const isPublicRoute = publicRoutes.some(route => {
+          if (route === '/') return window.location.pathname === '/';
+          return window.location.pathname.startsWith(route);
+        });
+
+        if (!isPublicRoute) {
+          window.location.href = '/login';
+        }
 
         return Promise.reject(refreshError);
       }
