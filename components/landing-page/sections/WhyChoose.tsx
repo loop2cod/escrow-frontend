@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Shield, Zap, Globe, Users, Lock, Clock, TrendingUp, CheckCircle } from 'lucide-react';
+import { Shield, Zap, Globe, Users, Lock, Clock, TrendingUp, CheckCircle, Award, FileCheck } from 'lucide-react';
 
 const reasons = [
   {
     icon: Shield,
-    title: 'Enterprise-Grade Security',
+    title: 'Licensed & Regulated',
     items: [
-      'DFNS Wallet Infrastructure',
-      'Smart order dedicated wallet',
-      '2FA Support',
-      'Full activity logging',
+      'Fully licensed escrow provider',
+      'Insurance protected funds*',
+      'Regulatory compliant',
+      'Regular third-party audits',
     ],
     color: 'from-blue-500/10 to-blue-600/10',
     iconBg: 'bg-blue-50',

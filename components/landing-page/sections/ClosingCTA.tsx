@@ -82,7 +82,7 @@ export default function ClosingCTA() {
           }`}
           style={{ transitionDelay: '500ms' }}
         >
-          No wallet setup required to start. Web3-backed. Human-simple.
+          No wallet setup required to start. Licensed, regulated & insured*. Web3-backed. Human-simple.
         </p>
       </div>
     </section>

@@ -69,7 +69,15 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Insurance Disclaimer */}
+        <div className="pt-6 pb-4 border-t border-white/10">
+          <p className="text-xs text-gray-500 text-center max-w-4xl mx-auto">
+            *Insurance coverage subject to terms and conditions. Coverage limits and eligibility criteria apply. 
+            Please refer to our <a href="/terms-of-service" className="text-gray-400 hover:text-[#C8FF2E] transition-colors">Terms of Service</a> for complete details on insurance protection and coverage scope.
+          </p>
+        </div>
+
+        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-400">
             © 2026 StableEscrow. All rights reserved.
           </p>

@@ -20,10 +20,10 @@ const features = [
   },
   {
     icon: Shield,
-    title: 'Smart Contract Escrow',
+    title: 'Licensed & Insured Escrow*',
     description:
-      'Funds locked on-chain until delivery confirmed. Admin verification and dispute resolution protect both parties.',
-    highlights: ['Fund locking', 'Milestone releases', 'Dispute protection'],
+      'Licensed and regulated escrow service with insurance protection on your funds. Complete security with dispute resolution.',
+    highlights: ['Licensed & Regulated', 'Insurance Protected*', 'Dispute resolution'],
     link: '#',
   },
   {

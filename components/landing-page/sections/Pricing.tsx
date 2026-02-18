@@ -11,6 +11,8 @@ const features = [
   'Escrow Wallet Creation',
   'Platform Fee (2%)',
   'Dispute Resolution',
+  'Licensed & Regulated',
+  'Insurance Protection*',
 ];
 
 export default function Pricing() {

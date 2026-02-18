@@ -147,7 +147,7 @@ export default function Hero() {
           }`}
           style={{ transitionDelay: '500ms' }}
         >
-          A decentralized escrow platform built on blockchain that protects both buyers and sellers with automation, milestone-based payments, and seamless crypto transactions.
+          A licensed and regulated decentralized escrow platform that protects both buyers and sellers with automation, milestone-based payments, seamless crypto transactions, and insurance* protection on your funds.
         </p>
 
         <div

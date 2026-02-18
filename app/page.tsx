@@ -11,6 +11,7 @@ import Pricing from "@/components/landing-page/sections/Pricing";
 import ProblemSolution from "@/components/landing-page/sections/ProblemSolution";
 import SocialProof from "@/components/landing-page/sections/SocialProof";
 import Templates from "@/components/landing-page/sections/Templates";
+import TrustBadges from "@/components/landing-page/sections/TrustBadges";
 import WhyChoose from '@/components/landing-page/sections/WhyChoose';
 
 export default function LandingPage() {
@@ -31,6 +32,7 @@ export default function LandingPage() {
         <WhyChoose />
         <HowItWorks />
         <SocialProof />
+        <TrustBadges />
         <Pricing />
         <ClosingCTA />
       </main>
