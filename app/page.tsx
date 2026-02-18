@@ -27,12 +27,12 @@ export default function LandingPage() {
       <main className="relative">
         <Hero />
         <ProblemSolution />
+         <TrustBadges />
         <Features />
         <Templates />
         <WhyChoose />
         <HowItWorks />
         <SocialProof />
-        <TrustBadges />
         <Pricing />
         <ClosingCTA />
       </main>

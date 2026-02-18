@@ -1,0 +1,28 @@
+{
+  "name": "StableEscrow",
+  "short_name": "StableEscrow",
+  "description": "Licensed & Insured Blockchain Escrow Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F7FA",
+  "theme_color": "#0B0C10",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr"
+}

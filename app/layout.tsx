@@ -39,8 +39,49 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Escrow System",
-  description: "Secure escrow transactions platform",
+  title: "StableEscrow | Licensed & Insured Blockchain Escrow Platform",
+  description: "Secure escrow transactions platform for freelancers, teams, and businesses. Licensed, regulated & insured* blockchain-powered escrow with milestone payments and zero trust issues.",
+  keywords: ["escrow", "blockchain", "secure payments", "milestone payments", "licensed escrow", "insured escrow", "freelance", "smart contracts"],
+  authors: [{ name: "StableEscrow" }],
+  creator: "StableEscrow",
+  publisher: "StableEscrow",
+  robots: "index, follow",
+  metadataBase: new URL("https://escrow.nfigate.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://escrow.nfigate.com",
+    siteName: "StableEscrow",
+    title: "StableEscrow | Licensed & Insured Blockchain Escrow Platform",
+    description: "Secure escrow transactions platform for freelancers, teams, and businesses. Licensed, regulated & insured* blockchain-powered escrow with milestone payments.",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "StableEscrow - Secure Transactions. Verified Payments. Zero Trust Issues.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StableEscrow | Licensed & Insured Blockchain Escrow Platform",
+    description: "Secure escrow transactions platform for freelancers, teams, and businesses. Licensed, regulated & insured* blockchain-powered escrow.",
+    images: ["/og-image-twitter.svg"],
+    creator: "@stableescrow",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.svg", type: "image/svg+xml", sizes: "180x180" },
+    ],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

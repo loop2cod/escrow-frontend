@@ -32,14 +32,14 @@ export default function ClosingCTA() {
 
       {/* Center Ring */}
       <div
-        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[64vmin] h-[64vmin] rounded-full border-2 border-white/35 transition-all duration-1000 ${
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[74vmin] h-[74vmin] rounded-full border-2 border-white/35 transition-all duration-1000 ${
           isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-85'
         }`}
       />
 
       {/* Ring Ticks */}
       <div
-        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vmin] h-[70vmin] pointer-events-none transition-all duration-800 ${
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[74.5vmin] h-[74.5vmin] pointer-events-none transition-all duration-800 ${
           isInView ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ transitionDelay: '200ms' }}
@@ -59,7 +59,7 @@ export default function ClosingCTA() {
           }`}
           style={{ transitionDelay: '300ms' }}
         >
-          Ready to remove the trust problem?
+          Ready to remove trust problem?
         </h1>
 
         {/* CTA */}
@@ -70,7 +70,7 @@ export default function ClosingCTA() {
           style={{ transitionDelay: '400ms' }}
         >
           <button className="btn-primary flex items-center gap-2 mx-auto">
-            Create Free Escrow
+            Create Escrow Now
             <ArrowRight size={18} />
           </button>
         </div>
@@ -82,7 +82,7 @@ export default function ClosingCTA() {
           }`}
           style={{ transitionDelay: '500ms' }}
         >
-          No wallet setup required to start. Licensed, regulated & insured*. Web3-backed. Human-simple.
+    Licensed, regulated & insured*. Web3-backed. Human-simple.
         </p>
       </div>
     </section>

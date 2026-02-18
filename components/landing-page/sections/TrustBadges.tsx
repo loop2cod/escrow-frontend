@@ -49,7 +49,7 @@ export default function TrustBadges() {
     <section
       ref={sectionRef}
       id="trust-badges"
-      className="section-flowing bg-white z-[75] py-20"
+      className="section-flowing bg-white z-[75] py-24"
     >
       {/* Grid Background */}
       <div className="absolute inset-0 grid-background opacity-50" />
@@ -71,11 +71,11 @@ export default function TrustBadges() {
         </div>
 
         {/* Badges Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {badges.map((badge, index) => (
             <div
               key={index}
-              className={`relative bg-gradient-to-br from-[#F6F7FA] to-white rounded-2xl p-6 border border-[#e5e5e5] hover:border-[#C8FF2E] hover:shadow-lg transition-all duration-300 group ${
+              className={`relative bg-gradient-to-br from-[#F6F7FA] to-white rounded-2xl p-8 border border-[#e5e5e5] hover:border-[#C8FF2E] hover:shadow-lg transition-all duration-300 group ${
                 isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
               style={{ transitionDelay: `${200 + index * 100}ms` }}
@@ -88,12 +88,12 @@ export default function TrustBadges() {
               </div>
 
               {/* Icon */}
-              <div className="w-14 h-14 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center mb-4 mt-2 group-hover:border-[#C8FF2E] group-hover:bg-[#C8FF2E]/10 transition-all duration-300">
-                <badge.icon size={28} className="text-[#0B0C10]" />
+              <div className="w-16 h-16 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center mb-5 mt-4 group-hover:border-[#C8FF2E] group-hover:bg-[#C8FF2E]/10 transition-all duration-300">
+                <badge.icon size={32} className="text-[#0B0C10]" />
               </div>
 
               {/* Title */}
-              <h3 className="text-lg font-semibold mb-2">{badge.title}</h3>
+              <h3 className="text-lg font-semibold mb-3">{badge.title}</h3>
 
               {/* Description */}
               <p className="text-sm text-[#6B7280] leading-relaxed">
