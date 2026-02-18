@@ -10,7 +10,7 @@ const testimonials = [
   },
   {
     quote:
-      'SecureEscrow transformed how we handle freelance contracts. No more chasing payments.',
+      'StableEscrow transformed how we handle freelance contracts. No more chasing payments.',
     author: 'Marcus Rodriguez',
     role: 'CEO, TechStart Inc.',
   },

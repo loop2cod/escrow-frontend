@@ -156,7 +156,7 @@ export default function AdminLayout({
                       <div className="w-8 h-8 rounded-full bg-[#0B0C10] dark:bg-[#C8FF2E] flex items-center justify-center">
                         <div className="w-3 h-3 rounded-full bg-[#C8FF2E] dark:bg-[#0B0C10]" />
                       </div>
-                      <span className="font-semibold text-lg tracking-tight">SecureEscrow</span>
+                      <span className="font-semibold text-lg tracking-tight">StableEscrow</span>
                     </Link>
                   </div>
 

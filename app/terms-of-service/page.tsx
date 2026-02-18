@@ -34,7 +34,7 @@ export default function TermsOfService() {
                             <section>
                                 <h2 className="text-2xl font-bold mb-4">2. Use License</h2>
                                 <p className="leading-relaxed text-muted-foreground">
-                                    Permission is granted to temporarily download one copy of the materials (information or software) on SecureEscrow's website for personal,
+                                    Permission is granted to temporarily download one copy of the materials (information or software) on StableEscrow's website for personal,
                                     non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.
                                 </p>
                             </section>
@@ -42,7 +42,7 @@ export default function TermsOfService() {
                             <section>
                                 <h2 className="text-2xl font-bold mb-4">3. Disclaimer</h2>
                                 <p className="leading-relaxed text-muted-foreground">
-                                    The materials on SecureEscrow's website are provided on an 'as is' basis. SecureEscrow makes no warranties, expressed or implied,
+                                    The materials on StableEscrow's website are provided on an 'as is' basis. StableEscrow makes no warranties, expressed or implied,
                                     and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability,
                                     fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
                                 </p>
@@ -51,8 +51,8 @@ export default function TermsOfService() {
                             <section>
                                 <h2 className="text-2xl font-bold mb-4">4. Limitations</h2>
                                 <p className="leading-relaxed text-muted-foreground">
-                                    In no event shall SecureEscrow or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit,
-                                    or due to business interruption) arising out of the use or inability to use the materials on SecureEscrow's website.
+                                    In no event shall StableEscrow or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit,
+                                    or due to business interruption) arising out of the use or inability to use the materials on StableEscrow's website.
                                 </p>
                             </section>
                         </div>

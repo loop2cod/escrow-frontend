@@ -26,7 +26,7 @@ export default function PrivacyPolicy() {
                             <section>
                                 <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
                                 <p className="leading-relaxed text-muted-foreground">
-                                    Welcome to SecureEscrow. We verify respect your privacy and are committed to protecting your personal data.
+                                    Welcome to StableEscrow. We verify respect your privacy and are committed to protecting your personal data.
                                     This privacy policy will inform you as to how we look after your personal data when you visit our website
                                     and tell you about your privacy rights and how the law protects you.
                                 </p>

@@ -92,7 +92,7 @@ export default function WhyChoose() {
           className={`text-center mb-16 transition-all duration-600 ${isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}
         >
-          <span className="micro-label block mb-4">Why SecureEscrow</span>
+          <span className="micro-label block mb-4">Why StableEscrow</span>
           <h2 className="text-[clamp(32px,3.6vw,52px)] font-semibold mb-4">
             Built for trust, designed for speed
           </h2>

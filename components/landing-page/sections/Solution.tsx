@@ -84,7 +84,7 @@ export default function Solution() {
         </h2>
 
         <p className="text-lg text-[#6B7280] mb-8">
-          SecureEscrow holds payment in a smart contract. Funds release only
+          StableEscrow holds payment in a smart contract. Funds release only
           when both parties confirm.
         </p>
 

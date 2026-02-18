@@ -159,7 +159,7 @@ export function AppSidebar() {
             <div className="w-3 h-3 rounded-full bg-[#C8FF2E] dark:bg-[#0B0C10]" />
           </div>
           <span className="font-semibold text-lg tracking-tight text-sidebar-foreground">
-            SecureEscrow
+            StableEscrow
           </span>
         </Link>
       </SidebarHeader>

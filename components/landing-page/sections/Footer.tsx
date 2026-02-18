@@ -22,7 +22,7 @@ export default function Footer() {
                 <div className="w-3 h-3 rounded-full bg-[#C8FF2E]" />
               </div>
               <span className="font-semibold text-lg tracking-tight">
-                SecureEscrow
+                StableEscrow
               </span>
             </div>
             <p className="text-gray-400 mb-6 max-w-sm">
@@ -71,7 +71,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-400">
-            © 2026 SecureEscrow. All rights reserved.
+            © 2026 StableEscrow. All rights reserved.
           </p>
 
           {/* Social Links */}
