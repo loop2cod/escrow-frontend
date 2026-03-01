@@ -30,6 +30,9 @@ import {
 import apiClient from "@/lib/api-client";
 import Link from "next/link";
 import { format } from "date-fns";
+import { VerificationStatus } from "@/components/dashboard/verification-status";
+import { checkAndCreateWallet } from "@/lib/api/verification";
+import { useVerification } from "@/lib/contexts/verification-context";
 
 interface DashboardStats {
   totalBalance: number;
@@ -422,7 +425,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   );
 }
 
-function UserProfileCard({ user }: { user?: UserData }) {
+function UserProfileCard({ user, verified }: { user?: UserData; verified?: boolean }) {
   if (!user) return null;
 
   return (
@@ -441,7 +444,15 @@ function UserProfileCard({ user }: { user?: UserData }) {
             )}
           </div>
           <div>
-            <p className="font-semibold text-sm">{user.name}</p>
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm">{user.name}</p>
+              {verified && (
+                <Badge className="h-5 px-2 text-[10px] bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Verified
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Mail className="h-3 w-3" />
@@ -497,10 +508,33 @@ function QuickActionsCard() {
 }
 
 export default function DashboardPage() {
+  const { isVerified, setIsVerified } = useVerification();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [kycVerified, setKycVerified] = useState(false);
+  const [checkingWallet, setCheckingWallet] = useState(false);
+
+  const checkWalletCreation = async () => {
+    try {
+      setCheckingWallet(true);
+      const response = await checkAndCreateWallet();
+
+      if (response.success && response.data) {
+        setKycVerified(response.data.kycStatus === 'approved');
+
+        // If wallet was just created, refresh the dashboard
+        if (response.data.walletCreated) {
+          await fetchDashboard(false);
+        }
+      }
+    } catch (err: any) {
+      console.error("Failed to check wallet creation:", err);
+    } finally {
+      setCheckingWallet(false);
+    }
+  };
 
   const fetchDashboard = async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -547,10 +581,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboard();
+    checkWalletCreation();
 
     // Auto-refresh every 60 seconds
     const interval = setInterval(() => {
       fetchDashboard(false);
+      checkWalletCreation();
     }, 60000);
 
     return () => clearInterval(interval);
@@ -558,6 +594,17 @@ export default function DashboardPage() {
 
   const handleRetry = () => {
     fetchDashboard();
+  };
+
+  const handleVerificationApproved = async () => {
+    // Check wallet creation and refresh dashboard
+    await checkWalletCreation();
+    await fetchDashboard(false);
+  };
+
+  const handleVerificationStatusChange = (verified: boolean) => {
+    setIsVerified(verified);
+    setKycVerified(verified);
   };
 
   if (loading) {
@@ -617,49 +664,62 @@ export default function DashboardPage() {
 
 
       {/* User Profile Row */}
-      <UserProfileCard user={data?.user} />
+      <UserProfileCard user={data?.user} verified={isVerified} />
 
-      {/* Balance & Escrow Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <WalletBalanceCard balance={stats.totalBalance} />
-        <EscrowCard amount={stats.totalInEscrow} />
-      </div>
+      {/* Verification Status - Only show if not verified */}
+      {!isVerified && (
+        <VerificationStatus
+          onVerificationApproved={handleVerificationApproved}
+          onVerificationStatusChange={handleVerificationStatusChange}
+        />
+      )}
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard
-          title="Active Orders"
-          value={stats.activeContracts}
-          change="+2"
-          icon={ShoppingCart}
-          trend="up"
-        />
-        <StatCard
-          title="Pending"
-          value={stats.pendingContracts}
-          icon={Clock}
-          trend="neutral"
-        />
-        <StatCard
-          title="Completed"
-          value={stats.completedContracts}
-          change="+8%"
-          icon={CheckCircle2}
-          trend="up"
-        />
-        <StatCard
-          title="Total Orders"
-          value={stats.totalContracts}
-          icon={Package}
-          trend="neutral"
-        />
-      </div>
+      {/* Dashboard Content - Blurred if not verified */}
+      <div className={`space-y-4 sm:space-y-6 ${!isVerified ? 'blur-sm pointer-events-none select-none' : ''}`}>
+        {/* Balance & Escrow Row - Only show if KYC verified */}
+        {kycVerified && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <WalletBalanceCard balance={stats.totalBalance} />
+            <EscrowCard amount={stats.totalInEscrow} />
+          </div>
+        )}
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-        <OrdersCard contracts={data?.recentContracts || []} />
-        <QuickActionsCard />
-        <ActivityCard activities={data?.recentActivity || []} />
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <StatCard
+            title="Active Orders"
+            value={stats.activeContracts}
+            change="+2"
+            icon={ShoppingCart}
+            trend="up"
+          />
+          <StatCard
+            title="Pending"
+            value={stats.pendingContracts}
+            icon={Clock}
+            trend="neutral"
+          />
+          <StatCard
+            title="Completed"
+            value={stats.completedContracts}
+            change="+8%"
+            icon={CheckCircle2}
+            trend="up"
+          />
+          <StatCard
+            title="Total Orders"
+            value={stats.totalContracts}
+            icon={Package}
+            trend="neutral"
+          />
+        </div>
+
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <OrdersCard contracts={data?.recentContracts || []} />
+          <QuickActionsCard />
+          <ActivityCard activities={data?.recentActivity || []} />
+        </div>
       </div>
     </div>
   );

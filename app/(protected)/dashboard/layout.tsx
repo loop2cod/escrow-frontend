@@ -19,6 +19,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import { useTheme } from "@/components/theme-provider";
+import { VerificationProvider } from "@/lib/contexts/verification-context";
 
 function UserNav() {
   const { user } = useAuthStore();
@@ -134,14 +135,15 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute allowedRoles={[UserRole.USER]}>
-      <SidebarProvider>
-        <div className="min-h-screen w-full bg-background">
-          {/* Lifted Layout Container */}
-          <div className="flex h-screen p-3 gap-3">
-            {/* Desktop Sidebar - Lifted */}
-            <aside className="hidden lg:flex w-64 flex-col rounded-2xl bg-sidebar h-full overflow-hidden shrink-0">
-              <AppSidebar />
-            </aside>
+      <VerificationProvider>
+        <SidebarProvider>
+          <div className="min-h-screen w-full bg-background">
+            {/* Lifted Layout Container */}
+            <div className="flex h-screen p-3 gap-3">
+              {/* Desktop Sidebar - Lifted */}
+              <aside className="hidden lg:flex w-64 flex-col rounded-2xl bg-sidebar h-full overflow-hidden shrink-0">
+                <AppSidebar />
+              </aside>
 
             {/* Mobile Sidebar Drawer */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -183,7 +185,8 @@ export default function DashboardLayout({
             </main>
           </div>
         </div>
-      </SidebarProvider>
+        </SidebarProvider>
+      </VerificationProvider>
     </ProtectedRoute>
   );
 }

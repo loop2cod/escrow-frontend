@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Figtree, Space_Grotesk, Inter, IBM_Plex_Mono } from 
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AccessibilityProvider } from "@/components/accessibility-provider";
 import { GoogleAuthProvider } from "@/components/providers/GoogleAuthProvider";
@@ -100,6 +101,7 @@ export default function RootLayout({
               <AuthProvider>
                 {children}
                 <Toaster />
+                <SonnerToaster position="top-right" />
               </AuthProvider>
             </GoogleAuthProvider>
           </AccessibilityProvider>

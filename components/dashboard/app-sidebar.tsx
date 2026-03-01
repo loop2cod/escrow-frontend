@@ -37,6 +37,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useVerification } from "@/lib/contexts/verification-context";
 
 interface NavItem {
   title: string;
@@ -149,6 +150,7 @@ function NavItemComponent({
 export function AppSidebar() {
   const pathname = usePathname();
   const { logout } = useAuthStore();
+  const { isVerified } = useVerification();
 
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -173,18 +175,23 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <NavItemComponent
-                      item={item}
-                      isActive={
-                        pathname === item.href ||
-                        (item.items?.some((sub) => pathname === sub.href) ??
-                          false)
-                      }
-                    />
-                  </SidebarMenuItem>
-                ))}
+                {group.items.map((item) => {
+                  // Blur all items except Overview/Dashboard when not verified
+                  const shouldBlur = !isVerified && item.href !== '/dashboard';
+
+                  return (
+                    <SidebarMenuItem key={item.href} className={shouldBlur ? 'blur-sm pointer-events-none select-none' : ''}>
+                      <NavItemComponent
+                        item={item}
+                        isActive={
+                          pathname === item.href ||
+                          (item.items?.some((sub) => pathname === sub.href) ??
+                            false)
+                        }
+                      />
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
