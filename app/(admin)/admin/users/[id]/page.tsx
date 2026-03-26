@@ -27,7 +27,11 @@ import {
     Mail,
     Shield,
     Copy,
-    Loader2
+    Loader2,
+    Activity,
+    ExternalLink,
+    Hash,
+    Network
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -42,6 +46,19 @@ interface Contract {
     seller?: { id: string; name: string; email: string };
     buyer?: { id: string; name: string; email: string };
     _count?: { milestones: number };
+}
+
+interface KytTransfer {
+    id: string;
+    txHash: string;
+    network: string;
+    direction: string;
+    tokenSymbol: string | null;
+    amount: number | null;
+    fiatValue: number | null;
+    riskLevel: string | null;
+    riskScore: number | null;
+    registeredAt: string;
 }
 
 interface UserDetail {
@@ -88,12 +105,29 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'buying' | 'selling'>('buying');
+    const [kytTransfers, setKytTransfers] = useState<KytTransfer[]>([]);
+    const [kytLoading, setKytLoading] = useState(false);
 
     const { id } = use(params);
 
     useEffect(() => {
         fetchUserDetails();
+        fetchKytTransfers();
     }, [id]);
+
+    const fetchKytTransfers = async () => {
+        try {
+            setKytLoading(true);
+            const response = await apiClient.get(`/kyt/admin/transfers?userId=${id}&limit=5`);
+            if (response.data.status && response.data.data) {
+                setKytTransfers(response.data.data.transfers || []);
+            }
+        } catch (err: any) {
+            console.error('Failed to fetch KYT transfers:', err);
+        } finally {
+            setKytLoading(false);
+        }
+    };
 
     const fetchUserDetails = async (showLoading = true) => {
         try {
@@ -534,6 +568,78 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                     )
                                 )}
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* KYT Transfers Card */}
+                    <Card className="border-0 shadow-sm">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                    <Activity className="h-4 w-4" /> Recent Transfers
+                                </CardTitle>
+                                <Button variant="ghost" size="sm" className="text-xs h-7" asChild>
+                                    <Link href={`/admin/kyt/transfers?userId=${id}`}>
+                                        View All <ExternalLink className="h-3 w-3 ml-1" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {kytLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                </div>
+                            ) : kytTransfers.length > 0 ? (
+                                <div className="space-y-2">
+                                    {kytTransfers.map((transfer) => {
+                                        const getRiskColor = (risk: string | null) => {
+                                            switch (risk) {
+                                                case "none": return "bg-emerald-500/10 text-emerald-500";
+                                                case "low": return "bg-blue-500/10 text-blue-500";
+                                                case "medium": return "bg-amber-500/10 text-amber-500";
+                                                case "high": return "bg-orange-500/10 text-orange-500";
+                                                case "severe": return "bg-red-500/10 text-red-500";
+                                                default: return "bg-slate-500/10 text-slate-500";
+                                            }
+                                        };
+
+                                        const truncateHash = (hash: string) => `${hash.slice(0, 8)}...${hash.slice(-6)}`;
+                                        const formatAmount = (amount: number | null, symbol: string | null) =>
+                                            amount !== null ? `${amount.toLocaleString()} ${symbol || ''}` : 'N/A';
+
+                                        return (
+                                            <Link key={transfer.id} href={`/admin/kyt/transfers/${transfer.id}`}>
+                                                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <Hash className="h-3 w-3 text-primary" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-medium">{truncateHash(transfer.txHash)}</p>
+                                                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                                                <Network className="h-2 w-2" />
+                                                                {transfer.network} • {transfer.direction === 'incoming' ? '↓ In' : '↑ Out'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-xs font-medium">{formatAmount(transfer.amount, transfer.tokenSymbol)}</p>
+                                                        <Badge className={`${getRiskColor(transfer.riskLevel)} text-[9px] px-1 py-0`}>
+                                                            {transfer.riskLevel || 'undefined'}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Activity className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                    <p className="text-sm">No transfers found</p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

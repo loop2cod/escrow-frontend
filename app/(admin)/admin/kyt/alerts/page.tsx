@@ -5,20 +5,19 @@ import apiClient from "@/lib/api-client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Shield,
   RefreshCw,
   Loader2,
   AlertCircle,
-  Activity,
-  Filter,
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
   Clock,
   User,
   Hash,
+  Flame,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -47,19 +46,9 @@ interface Pagination {
   totalPages: number;
 }
 
-interface Filters {
-  risk_level: string;
-  network: string;
-  direction: string;
-  tx_hash: string;
-  start_date: string;
-  end_date: string;
-}
-
-interface TransfersData {
+interface AlertsData {
   transfers: Transfer[];
   pagination: Pagination;
-  filters: Filters;
 }
 
 function Breadcrumb() {
@@ -68,7 +57,7 @@ function Breadcrumb() {
       <Shield className="h-4 w-4" />
       <Link href="/admin/kyt" className="hover:text-foreground">KYT</Link>
       <span>/</span>
-      <span className="text-foreground font-medium">Transfers</span>
+      <span className="text-foreground font-medium">Alerts</span>
     </nav>
   );
 }
@@ -76,9 +65,6 @@ function Breadcrumb() {
 function RiskBadge({ riskLevel }: { riskLevel: string | null }) {
   const getRiskColor = (risk: string | null) => {
     switch (risk) {
-      case "none": return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-      case "low": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "medium": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       case "high": return "bg-orange-500/10 text-orange-500 border-orange-500/20";
       case "severe": return "bg-red-500/10 text-red-500 border-red-500/20";
       default: return "bg-slate-500/10 text-slate-500 border-slate-500/20";
@@ -116,65 +102,7 @@ function NetworkBadge({ network }: { network: string }) {
   );
 }
 
-function FilterPanel({ filters, onFilterChange, onApply, onReset }: {
-  filters: Filters;
-  onFilterChange: (key: keyof Filters, value: string) => void;
-  onApply: () => void;
-  onReset: () => void;
-}) {
-  return (
-    <Card className="p-4 border-0 shadow-lg">
-      <div className="flex items-center gap-2 mb-4">
-        <Filter className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-sm">Filters</h3>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Risk Level</label>
-          <select value={filters.risk_level} onChange={(e) => onFilterChange("risk_level", e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm">
-            <option value="">All</option>
-            <option value="none">None</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="severe">Severe</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Network</label>
-          <select value={filters.network} onChange={(e) => onFilterChange("network", e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm">
-            <option value="">All</option>
-            <option value="TRX">TRX (Tron)</option>
-            <option value="ETH">ETH (Ethereum)</option>
-            <option value="BTC">BTC (Bitcoin)</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Direction</label>
-          <select value={filters.direction} onChange={(e) => onFilterChange("direction", e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm">
-            <option value="">All</option>
-            <option value="incoming">Incoming</option>
-            <option value="outgoing">Outgoing</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">TX Hash</label>
-          <Input placeholder="Search..." value={filters.tx_hash}
-            onChange={(e) => onFilterChange("tx_hash", e.target.value)} className="h-9 text-sm" />
-        </div>
-        <div className="flex items-end gap-2">
-          <Button onClick={onApply} className="h-9 text-sm flex-1">Apply</Button>
-          <Button onClick={onReset} variant="outline" className="h-9 text-sm">Reset</Button>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function TransfersTable({ transfers }: { transfers: Transfer[] }) {
+function AlertsTable({ transfers }: { transfers: Transfer[] }) {
   const truncateHash = (hash: string) => `${hash.slice(0, 10)}...${hash.slice(-8)}`;
   const formatAmount = (amount: number | null, symbol: string | null) =>
     amount === null ? "N/A" : `${amount.toLocaleString()} ${symbol || ""}`;
@@ -184,8 +112,8 @@ function TransfersTable({ transfers }: { transfers: Transfer[] }) {
   if (transfers.length === 0) {
     return (
       <Card className="p-8 border-0 shadow-lg text-center">
-        <Activity className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-        <p className="text-muted-foreground">No transfers found</p>
+        <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+        <p className="text-muted-foreground">No high-risk alerts found</p>
       </Card>
     );
   }
@@ -251,50 +179,77 @@ function TransfersTable({ transfers }: { transfers: Transfer[] }) {
   );
 }
 
-export default function KytTransfers() {
-  const [data, setData] = useState<TransfersData | null>(null);
+export default function KytAlerts() {
+  const [data, setData] = useState<AlertsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Filters>({ risk_level: "", network: "", direction: "", tx_hash: "", start_date: "", end_date: "" });
   const [page, setPage] = useState(1);
+  const [riskFilter, setRiskFilter] = useState<"all" | "high" | "severe">("all");
 
-  const fetchTransfers = useCallback(async (showLoading = true) => {
+  const fetchAlerts = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       params.append("page", page.toString());
       params.append("limit", "20");
-      if (filters.risk_level) params.append("risk_level", filters.risk_level);
-      if (filters.network) params.append("network", filters.network);
-      if (filters.direction) params.append("direction", filters.direction);
-      if (filters.tx_hash) params.append("tx_hash", filters.tx_hash);
-      if (filters.start_date) params.append("start_date", filters.start_date);
-      if (filters.end_date) params.append("end_date", filters.end_date);
-      const response = await apiClient.get(`/kyt/admin/transfers?${params.toString()}`);
-      if (response.data.status && response.data.data) {
-        setData(response.data.data);
+      
+      // Fetch high and severe risk transfers
+      if (riskFilter === "all") {
+        // We'll fetch both and combine
+        const [highRes, severeRes] = await Promise.all([
+          apiClient.get(`/kyt/admin/transfers?page=${page}&limit=20&risk_level=high`),
+          apiClient.get(`/kyt/admin/transfers?page=${page}&limit=20&risk_level=severe`)
+        ]);
+        
+        if (highRes.data.status && severeRes.data.status) {
+          const highTransfers = highRes.data.data.transfers || [];
+          const severeTransfers = severeRes.data.data.transfers || [];
+          const allTransfers = [...severeTransfers, ...highTransfers].sort(
+            (a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime()
+          );
+          
+          setData({
+            transfers: allTransfers,
+            pagination: {
+              page,
+              limit: 20,
+              total: (highRes.data.data.pagination?.total || 0) + (severeRes.data.data.pagination?.total || 0),
+              totalPages: Math.max(
+                highRes.data.data.pagination?.totalPages || 1,
+                severeRes.data.data.pagination?.totalPages || 1
+              )
+            }
+          });
+        } else {
+          setError("Invalid response from server");
+        }
       } else {
-        setError(response.data.message || "Invalid response from server");
+        params.append("risk_level", riskFilter);
+        const response = await apiClient.get(`/kyt/admin/transfers?${params.toString()}`);
+        if (response.data.status && response.data.data) {
+          setData(response.data.data);
+        } else {
+          setError(response.data.message || "Invalid response from server");
+        }
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Failed to load transfers");
+      setError(err?.response?.data?.message || err?.message || "Failed to load alerts");
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [page, filters]);
+  }, [page, riskFilter]);
 
-  useEffect(() => { fetchTransfers(); }, [fetchTransfers]);
+  useEffect(() => { fetchAlerts(); }, [fetchAlerts]);
 
-  const handleFilterChange = (key: keyof Filters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
+  const highRiskCount = data?.transfers.filter(t => t.riskLevel === "high").length || 0;
+  const severeRiskCount = data?.transfers.filter(t => t.riskLevel === "severe").length || 0;
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">Loading transfers...</p>
+        <p className="text-muted-foreground">Loading alerts...</p>
       </div>
     );
   }
@@ -304,7 +259,7 @@ export default function KytTransfers() {
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <AlertCircle className="h-12 w-12 text-destructive" />
         <p className="text-muted-foreground">{error}</p>
-        <Button onClick={() => fetchTransfers()}>Retry</Button>
+        <Button onClick={() => fetchAlerts()}>Retry</Button>
       </div>
     );
   }
@@ -313,34 +268,76 @@ export default function KytTransfers() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <Breadcrumb />
-        <Button variant="ghost" size="sm" onClick={() => fetchTransfers()} className="gap-2">
+        <Button variant="ghost" size="sm" onClick={() => fetchAlerts()} className="gap-2">
           <RefreshCw className="h-4 w-4" />Refresh
         </Button>
       </div>
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Transfers</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Monitor and review all cryptocurrency transfers</p>
-      </div>
-      <FilterPanel filters={filters} onFilterChange={handleFilterChange}
-        onApply={() => { setPage(1); fetchTransfers(); }}
-        onReset={() => { setFilters({ risk_level: "", network: "", direction: "", tx_hash: "", start_date: "", end_date: "" }); setPage(1); }} />
-      <TransfersTable transfers={data?.transfers || []} />
-      {data?.pagination && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {((data.pagination.page - 1) * data.pagination.limit) + 1} to{" "}
-            {Math.min(data.pagination.page * data.pagination.limit, data.pagination.total)} of {data.pagination.total}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page <= 1}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm">Page {page} of {data.pagination.totalPages}</span>
-            <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page >= data.pagination.totalPages}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Flame className="h-8 w-8 text-orange-500" />
+            High Risk Alerts
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">Transfers flagged with high or severe risk level</p>
         </div>
+        
+        <div className="flex gap-2">
+          <Button
+            variant={riskFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setRiskFilter("all"); setPage(1); }}
+          >
+            All ({highRiskCount + severeRiskCount})
+          </Button>
+          <Button
+            variant={riskFilter === "high" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setRiskFilter("high"); setPage(1); }}
+            className="gap-1"
+          >
+            <AlertTriangle className="h-3 w-3" />
+            High ({highRiskCount})
+          </Button>
+          <Button
+            variant={riskFilter === "severe" ? "destructive" : "outline"}
+            size="sm"
+            onClick={() => { setRiskFilter("severe"); setPage(1); }}
+            className="gap-1"
+          >
+            <Flame className="h-3 w-3" />
+            Severe ({severeRiskCount})
+          </Button>
+        </div>
+      </div>
+
+      {data?.transfers.length === 0 ? (
+        <Card className="p-8 border-0 shadow-lg text-center">
+          <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+          <p className="text-muted-foreground">No high-risk alerts found</p>
+          <p className="text-sm text-muted-foreground mt-2">All transfers are currently at low or medium risk</p>
+        </Card>
+      ) : (
+        <>
+          <AlertsTable transfers={data?.transfers || []} />
+          {data?.pagination && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {((data.pagination.page - 1) * data.pagination.limit) + 1} to{" "}
+                {Math.min(data.pagination.page * data.pagination.limit, data.pagination.total)} of {data.pagination.total} alerts
+              </p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page <= 1}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm">Page {page} of {data.pagination.totalPages}</span>
+                <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page >= data.pagination.totalPages}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
