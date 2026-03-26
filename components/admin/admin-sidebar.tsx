@@ -13,6 +13,8 @@ import {
   UserCog,
   Component,
   ChevronRight,
+  Activity,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -73,6 +75,21 @@ const navigation: NavGroup[] = [
         title: "Settings",
         href: "/admin/settings",
         icon: Settings,
+      },
+    ],
+  },
+  {
+    label: "COMPLIANCE",
+    items: [
+      {
+        title: "KYT Dashboard",
+        href: "/admin/kyt",
+        icon: Shield,
+        items: [
+          { title: "Overview", href: "/admin/kyt", icon: Activity },
+          { title: "Transfers", href: "/admin/kyt/transfers", icon: Activity },
+          { title: "Alerts", href: "/admin/kyt/alerts", icon: AlertTriangle },
+        ],
       },
     ],
   }
