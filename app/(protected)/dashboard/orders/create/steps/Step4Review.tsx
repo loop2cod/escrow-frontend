@@ -12,6 +12,10 @@ interface Step4Props {
     handleSubmit: () => void;
     isLoading: boolean;
     setStep: (step: number) => void;
+    title?: string;
+    description?: string;
+    buttonText?: string;
+    buttonLoadingText?: string;
 }
 
 export default function Step4Review({
@@ -19,7 +23,11 @@ export default function Step4Review({
     totalAmount,
     handleSubmit,
     isLoading,
-    setStep
+    setStep,
+    title = "Review & Create",
+    description = "Verify details before creating the contract.",
+    buttonText = "Create Contract",
+    buttonLoadingText
 }: Step4Props) {
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(true);
@@ -106,8 +114,8 @@ export default function Step4Review({
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Review & Create</CardTitle>
-                <CardDescription>Verify details before creating the contract.</CardDescription>
+                <CardTitle>{title}</CardTitle>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -175,7 +183,7 @@ export default function Step4Review({
             <CardFooter className="flex justify-between">
                 <Button variant="ghost" onClick={() => setStep(3)}>Back</Button>
                 <Button onClick={handleSubmit} disabled={isLoading} className="min-w-[140px]">
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create Contract <CheckCircle2 className="ml-2 h-4 w-4" /></>}
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{buttonText} <CheckCircle2 className="ml-2 h-4 w-4" /></>}
                 </Button>
             </CardFooter>
         </Card>

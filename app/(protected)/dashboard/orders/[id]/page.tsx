@@ -29,6 +29,8 @@ import {
   Check,
   RotateCcw,
   Download,
+  Pencil,
+  History,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -155,6 +157,11 @@ export default function OrderDetailPage() {
   // Timeline form state
   const [timelineForm, setTimelineForm] = useState({ title: "", description: "" });
   const [isAddingTimeline, setIsAddingTimeline] = useState(false);
+
+  // Version History State
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
 
   const fetchContract = useCallback(async (showLoading = true) => {
     if (!id) return;
@@ -306,6 +313,28 @@ export default function OrderDetailPage() {
     });
   };
 
+  // Fetch version history
+  const fetchVersionHistory = async () => {
+    if (!id) return;
+    setIsLoadingVersions(true);
+    try {
+      const res = await apiClient.get(`/contracts/${id}/versions`);
+      setVersions(res.data.data.versions || []);
+    } catch (err) {
+      console.error("Failed to fetch versions:", err);
+      toast({
+        title: "Error",
+        description: "Failed to load version history",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingVersions(false);
+    }
+  };
+
+  // Check if contract is editable (all except COMPLETED)
+  const isEditable = contract ? contract.status !== 'COMPLETED' : false;
+
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -410,6 +439,31 @@ export default function OrderDetailPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
+
+            {/* Version History Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setShowVersionHistory(!showVersionHistory);
+                if (!showVersionHistory) fetchVersionHistory();
+              }}
+            >
+              <History className="h-4 w-4 mr-2" />
+              History
+            </Button>
+
+            {/* Edit Button - Only for editable statuses */}
+            {isEditable && isSeller && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/dashboard/orders/${id}/edit`)}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
 
             {/* Cancel Action */}
             {['DRAFT', 'PENDING_REVIEW', 'PENDING_ACCEPTANCE'].includes(contract.status) && (isBuyer || isSeller) && (
@@ -711,20 +765,7 @@ export default function OrderDetailPage() {
                   )}
 
                   <div className="space-y-2">
-                    {/* <Button
-                      size="sm"
-                      variant="secondary"
-                      className="w-full text-xs"
-                      onClick={() => openConfirmDialog(
-                        "Confirm Payment",
-                        "Have you sent the funds to the escrow wallet?",
-                        () => updateStatus('PAYMENT_SUBMITTED')
-                      )}
-                    >
-                      I&apos;ve Sent Funds
-                    </Button> */}
-
-                    {canPay && (
+                    {canPay ? (
                       <Button
                         size="sm"
                         className="w-full text-xs"
@@ -736,6 +777,21 @@ export default function OrderDetailPage() {
                       >
                         <Wallet className="h-3 w-3 mr-1" /> Pay Instantly
                       </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-destructive">
+                          <AlertCircle className="h-3 w-3" />
+                          <span>Insufficient Balance</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs"
+                          onClick={() => router.push('/dashboard/wallet')}
+                        >
+                          <Wallet className="h-3 w-3 mr-1" /> Top Up Wallet
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>
@@ -917,6 +973,86 @@ export default function OrderDetailPage() {
         sellerName={contract.seller?.name || 'Seller'}
         orderStatus={contract.status}
       />
+
+      {/* Version History Panel */}
+      {showVersionHistory && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowVersionHistory(false)}>
+          <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <CardHeader className="border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" /> Version History
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setShowVersionHistory(false)}>
+                  <XCircle className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-y-auto max-h-[60vh]">
+              {isLoadingVersions ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : versions.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <History className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No version history available</p>
+                  <p className="text-sm mt-1">Versions are created when you edit the contract</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {versions.map((version: any, index: number) => (
+                    <div key={version.id} className="p-4 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className="text-xs">v{version.versionNumber}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(version.createdAt), 'MMM d, yyyy • h:mm a')}
+                            </span>
+                          </div>
+                          <h4 className="font-medium text-sm">{version.title}</h4>
+                          {version.changeNote && (
+                            <p className="text-xs text-muted-foreground mt-1">{version.changeNote}</p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <span>Amount: {parseFloat(version.totalAmount).toLocaleString()} {version.currency}</span>
+                            <span>Milestones: {(version.milestones as any[])?.length || 0}</span>
+                          </div>
+                        </div>
+                        {index > 0 && isEditable && isSeller && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() => {
+                              openConfirmDialog(
+                                "Restore Version",
+                                `Restore contract to version ${version.versionNumber}? This will create a new version.`,
+                                async () => {
+                                  await apiClient.post(`/contracts/${id}/versions/${version.versionNumber}/restore`, {
+                                    changeNote: `Restored from version ${version.versionNumber}`
+                                  });
+                                  toast({ title: "Success", description: "Contract restored successfully" });
+                                  setShowVersionHistory(false);
+                                  await fetchContract(false);
+                                }
+                              );
+                            }}
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Restore
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
