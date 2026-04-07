@@ -46,6 +46,15 @@ export default function Navigation() {
     { label: 'Pricing', id: 'pricing' },
   ];
 
+  const handleNavClick = (item: { label: string; id?: string; href?: string }) => {
+    if (item.href) {
+      router.push(item.href);
+    } else if (item.id) {
+      scrollToSection(item.id);
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <nav
@@ -77,6 +86,13 @@ export default function Navigation() {
                 {item.label}
               </button>
             ))}
+            <a
+              href="/docs"
+              className="text-sm font-medium text-[#6B7280] hover:text-[#0B0C10] transition-colors"
+              aria-label="Documentation"
+            >
+              Docs
+            </a>
           </div>
 
           {/* CTA Button */}
@@ -109,6 +125,12 @@ export default function Navigation() {
               {item.label}
             </button>
           ))}
+          <a
+            href="/docs"
+            className="text-2xl font-medium text-[#0B0C10] hover:text-[#C8FF2E] transition-colors"
+          >
+            Docs
+          </a>
           <button onClick={handleGetStarted} className="cursor-pointer btn-primary mt-4">Get Started</button>
         </div>
       )}
