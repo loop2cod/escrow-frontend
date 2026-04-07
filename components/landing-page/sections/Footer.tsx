@@ -1,8 +1,17 @@
 import { Mail, Twitter, Linkedin, Github } from 'lucide-react';
 
 const footerLinks = {
-  Product: ['Features', 'Templates', 'Pricing'],
-  Company: ['About', 'Case Studies', 'Contact'],
+  Product: [
+    { label: 'Features', href: '/#features' },
+    { label: 'Templates', href: '/#templates' },
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'Docs', href: '/docs' },
+  ],
+  Company: [
+    { label: 'About', href: '#' },
+    { label: 'Case Studies', href: '#' },
+    { label: 'Contact', href: '#' },
+  ],
   Legal: [
     { label: 'Privacy Policy', href: '/privacy-policy' },
     { label: 'Terms of Service', href: '/terms-of-service' },
